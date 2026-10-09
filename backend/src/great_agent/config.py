@@ -26,6 +26,19 @@ class PppfltSettings(BaseModel):
     observation_root: Path
     product_root: Path
     default_concurrency: int = Field(default=1, ge=1, le=8)
+    observation_template: str = (
+        r"{year}\{doy:03d}\{station_lower}{doy:03d}0.{yy:02d}o"
+    )
+    navigation_template: str = r"{year}\{doy:03d}\brdm{year}{doy:03d}.rnx"
+    orbit_template: str = r"{year}\{doy:03d}\igs{year}{doy:03d}.sp3"
+    clock_template: str = r"{year}\{doy:03d}\igs{year}{doy:03d}.clk"
+    bias_template: str = r"{year}\{doy:03d}\igs{year}{doy:03d}.bia"
+    ifcb_template: str = r"{year}\{doy:03d}\igs{year}{doy:03d}.ifcb"
+    upd_template: str = r"{year}\{doy:03d}\igs{year}{doy:03d}.upd"
+    antenna_template: str = r"models\igs20.atx"
+    tide_template: str = r"models\oceanload.blq"
+    erp_template: str = r"models\finals.erp"
+    planetary_template: str = r"models\de430.bsp"
 
 
 class AppSettings(BaseModel):

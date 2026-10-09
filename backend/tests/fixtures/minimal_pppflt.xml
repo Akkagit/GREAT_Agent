@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+  <!-- unrelated reference text must remain unchanged -->
+  <meta>Reference campaign 2024 used DOY 350.</meta>
+  <gen>
+    <rec> AHB0 BJFS CHAN DAEJ GAMG GMSD HKSL JFNG KUNM LHAZ NTUS SHAO URUM WUHN YELL </rec>
+    <mode> static </mode>
+    <year> 2024 </year>
+    <doy> 350 </doy>
+  </gen>
+  <inputs>
+    <rinexo> placeholder </rinexo>
+    <rinexn> placeholder </rinexn>
+    <sp3> placeholder </sp3>
+    <clk> placeholder </clk>
+    <bias> placeholder </bias>
+    <ifcb> placeholder </ifcb>
+    <upd> placeholder </upd>
+    <antenna> placeholder </antenna>
+    <tide> placeholder </tide>
+    <erp> placeholder </erp>
+    <planetary> placeholder </planetary>
+  </inputs>
+  <process>
+    <frequency> 2 </frequency>
+  </process>
+  <ambiguity>
+    <fix_mode> NO </fix_mode>
+  </ambiguity>
+  <filter reset_par="0" />
+  <outputs>
+    <root> placeholder </root>
+  </outputs>
+</config>

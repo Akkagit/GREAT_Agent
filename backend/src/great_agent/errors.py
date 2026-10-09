@@ -16,3 +16,11 @@ class RevisionConflictError(GreatAgentError):
 
 class PlanFrozenError(GreatAgentError):
     """Raised when attempting to mutate a frozen experiment plan."""
+
+
+class UnsafePathError(GreatAgentError, ValueError):
+    """Raised when a configured or generated path escapes its allowed root."""
+
+
+class XmlValidationError(GreatAgentError, ValueError):
+    """Raised when a PPPFLT template or rendered XML is structurally invalid."""
