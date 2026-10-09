@@ -1,0 +1,20 @@
+mode = 'local'
+project_root = 'F:\GREAT_Agent'
+run_root = 'F:\GREAT_Agent\runs'
+database_path = 'F:\GREAT_Agent\data\great_agent.db'
+host = '127.0.0.1'
+port = 8765
+max_concurrency = 2
+
+[model]
+base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+name = 'qwen-plus'
+connect_timeout_seconds = 10
+read_timeout_seconds = 120
+
+[pppflt]
+executable = 'F:\GREAT_Agent\local\GREAT_PVT.exe'
+template_path = 'F:\GREAT_Agent\local\templates\pppflt.xml'
+observation_root = 'D:\GNSS\observations'
+product_root = 'D:\GNSS\products'
+default_concurrency = 1
