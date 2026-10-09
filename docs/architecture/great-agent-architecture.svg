@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">GREAT Agent 第一版架构图</title>
+  <desc id="desc">本地 React 网页通过 FastAPI 管理模型计划、SQLite 状态和独立 Worker，Worker 经 GREAT PPPFLT 适配器读取科研输入并写入隔离任务目录。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5f8f2"/>
+      <stop offset="1" stop-color="#edf5f2"/>
+    </linearGradient>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#12372a"/>
+      <stop offset="1" stop-color="#205b45"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#12372a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2d6a55"/>
+    </marker>
+    <marker id="arrowMuted" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7a8d84"/>
+    </marker>
+    <style>
+      .title{font:700 34px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#fff}
+      .subtitle{font:400 17px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#d7ebe2}
+      .lane{font:700 15px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#49665a;letter-spacing:1px}
+      .boxTitle{font:700 22px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#173f31}
+      .body{font:400 16px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#365347}
+      .small{font:400 14px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#536c61}
+      .tag{font:700 13px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#1e5943}
+      .edge{stroke:#2d6a55;stroke-width:3;fill:none;marker-end:url(#arrow)}
+      .edge2{stroke:#7a8d84;stroke-width:2.5;fill:none;stroke-dasharray:8 7;marker-end:url(#arrowMuted)}
+      .card{fill:#fff;stroke:#bfd7cc;stroke-width:1.5;rx:18;filter:url(#shadow)}
+      .soft{fill:#f2f8f5;stroke:#c8ddd4;stroke-width:1.5;rx:16}
+      .data{fill:#fff9e9;stroke:#dfc978;stroke-width:1.5;rx:16}
+      .danger{fill:#fff3ef;stroke:#dfb09f;stroke-width:1.5;rx:16}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#bg)"/>
+  <rect x="32" y="28" width="1536" height="112" rx="24" fill="url(#header)"/>
+  <text x="72" y="78" class="title">GREAT Agent · PPPFLT 科研工作流架构</text>
+  <text x="72" y="112" class="subtitle">本机 Web Agent｜计划可编辑｜N 个可恢复日任务｜输入只读｜输出隔离｜面向开源扩展</text>
+  <rect x="1310" y="58" width="210" height="48" rx="24" fill="#e6f5ee" opacity="0.96"/>
+  <text x="1415" y="88" text-anchor="middle" class="tag">F:\GREAT_Agent</text>
+
+  <text x="60" y="183" class="lane">交互层</text>
+  <rect x="60" y="205" width="340" height="230" class="card"/>
+  <text x="90" y="247" class="boxTitle">研究人员 · 本机浏览器</text>
+  <rect x="90" y="270" width="280" height="44" rx="12" fill="#e8f5ef"/>
+  <text x="110" y="297" class="body">自然语言对话与计划修改</text>
+  <rect x="90" y="326" width="132" height="72" rx="12" fill="#f4f8f6" stroke="#d4e2dc"/>
+  <text x="156" y="355" text-anchor="middle" class="tag">计划卡片</text>
+  <text x="156" y="379" text-anchor="middle" class="small">编辑 / 差异</text>
+  <rect x="238" y="326" width="132" height="72" rx="12" fill="#f4f8f6" stroke="#d4e2dc"/>
+  <text x="304" y="355" text-anchor="middle" class="tag">任务面板</text>
+  <text x="304" y="379" text-anchor="middle" class="small">日志 / 结果</text>
+  <text x="90" y="421" class="small">默认仅访问 127.0.0.1</text>
+
+  <rect x="500" y="205" width="390" height="230" class="card"/>
+  <text x="530" y="247" class="boxTitle">React + TypeScript</text>
+  <text x="530" y="283" class="body">• 对话工作区</text>
+  <text x="530" y="314" class="body">• 卡片化计划审核与修订</text>
+  <text x="530" y="345" class="body">• N 个日任务的状态与实时日志</text>
+  <text x="530" y="376" class="body">• FLT 与输出文件清单</text>
+  <rect x="530" y="395" width="324" height="26" rx="13" fill="#e7f3ed"/>
+  <text x="692" y="413" text-anchor="middle" class="tag">HTTP API + Server-Sent Events</text>
+
+  <text x="60" y="493" class="lane">控制层</text>
+  <rect x="60" y="515" width="830" height="235" class="card"/>
+  <text x="90" y="557" class="boxTitle">FastAPI · 计划与实验控制</text>
+  <rect x="90" y="582" width="225" height="126" class="soft"/>
+  <text x="112" y="614" class="tag">ModelProvider</text>
+  <text x="112" y="642" class="body">千问 / OpenAI兼容API</text>
+  <text x="112" y="671" class="small">只生成计划草稿或字段补丁</text>
+  <text x="112" y="693" class="small">不生成可执行命令</text>
+
+  <rect x="333" y="582" width="245" height="126" class="soft"/>
+  <text x="355" y="614" class="tag">ExperimentSpec</text>
+  <text x="355" y="642" class="body">修订 · 校验 · 差异 · 冻结</text>
+  <text x="355" y="671" class="small">日期展开为动态 N 个任务</text>
+  <text x="355" y="693" class="small">执行后不可原地修改</text>
+
+  <rect x="596" y="582" width="264" height="126" class="soft"/>
+  <text x="618" y="614" class="tag">API Services</text>
+  <text x="618" y="642" class="body">预检 · 执行控制 · 结果</text>
+  <text x="618" y="671" class="small">停止 / 重试 / 复制实验</text>
+  <text x="618" y="693" class="small">错误分类与用户提示</text>
+
+  <text x="978" y="493" class="lane">状态与文件</text>
+  <rect x="978" y="515" width="562" height="235" class="card"/>
+  <rect x="1008" y="552" width="222" height="164" class="data"/>
+  <text x="1030" y="585" class="boxTitle">SQLite</text>
+  <text x="1030" y="620" class="body">实验与计划修订</text>
+  <text x="1030" y="650" class="body">日任务与尝试记录</text>
+  <text x="1030" y="680" class="body">状态、事件、文件索引</text>
+
+  <rect x="1250" y="552" width="260" height="164" class="data"/>
+  <text x="1272" y="585" class="boxTitle">runs\&lt;实验ID&gt;</text>
+  <text x="1272" y="620" class="body">冻结计划与 XML</text>
+  <text x="1272" y="650" class="body">每次尝试的独立日志</text>
+  <text x="1272" y="680" class="body">FLT、manifest、汇总</text>
+
+  <text x="60" y="807" class="lane">执行与科研数据层</text>
+  <rect x="60" y="829" width="330" height="166" class="card"/>
+  <text x="90" y="868" class="boxTitle">独立本地 Worker</text>
+  <text x="90" y="902" class="body">领取任务 · 限制并发</text>
+  <text x="90" y="932" class="body">停止 / 重试 / 中断恢复</text>
+  <text x="90" y="962" class="small">pending → running → succeeded/failed</text>
+
+  <rect x="475" y="829" width="350" height="166" class="card"/>
+  <text x="505" y="868" class="boxTitle">GreatPppfltAdapter</text>
+  <text x="505" y="902" class="body">输入预检 · 结构化 XML 生成</text>
+  <text x="505" y="932" class="body">语义复核 · 命令参数 · 结果识别</text>
+  <text x="505" y="962" class="small">每个日期 1 个 XML，内含默认 15 站</text>
+
+  <rect x="910" y="829" width="270" height="166" class="danger"/>
+  <text x="940" y="868" class="boxTitle">GREAT_PVT</text>
+  <text x="940" y="902" class="body">PPPFLT 数值解算</text>
+  <text x="940" y="932" class="body">受控子进程</text>
+  <text x="940" y="962" class="small">模型不能直接调用</text>
+
+  <rect x="1265" y="829" width="275" height="166" class="data"/>
+  <text x="1295" y="868" class="boxTitle">只读科研输入</text>
+  <text x="1295" y="902" class="body">15站观测数据</text>
+  <text x="1295" y="932" class="body">轨道 / 钟差 / DCB</text>
+  <text x="1295" y="962" class="body">UPD / IFCB / 模型文件</text>
+
+  <path d="M400 320 H500" class="edge"/>
+  <path d="M695 435 V515" class="edge"/>
+  <path d="M890 633 H978" class="edge"/>
+  <path d="M474 750 V790 H225 V829" class="edge"/>
+  <path d="M390 912 H475" class="edge"/>
+  <path d="M825 912 H910" class="edge"/>
+  <path d="M1265 912 H1180" class="edge2"/>
+  <path d="M1045 829 V782 H1380 V750" class="edge2"/>
+  <path d="M650 829 V780 H1380 V750" class="edge2"/>
+
+  <text x="450" y="306" text-anchor="middle" class="small">计划与事件</text>
+  <text x="905" y="618" class="small">持久化</text>
+  <text x="416" y="790" text-anchor="middle" class="small">冻结计划 → 动态 N 个日任务</text>
+  <text x="433" y="897" text-anchor="middle" class="small">受控调度</text>
+  <text x="868" y="897" text-anchor="middle" class="small">参数数组</text>
+
+  <rect x="60" y="1014" width="1480" height="2" fill="#b9cec5"/>
+  <text x="60" y="1041" class="small">安全边界：模型只参与计划草稿；执行前冻结；输入只读；输出限制在 F:\GREAT_Agent\runs；错误不静默跳过。</text>
+</svg>
