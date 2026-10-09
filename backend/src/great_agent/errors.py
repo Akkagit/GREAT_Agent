@@ -36,3 +36,7 @@ class PreflightError(GreatAgentError):
     def __init__(self, message: str, missing: tuple[object, ...]) -> None:
         super().__init__(message)
         self.missing = missing
+
+
+class TaskStateError(GreatAgentError):
+    """Raised when a task or attempt transition has the wrong prior state."""
