@@ -22,6 +22,10 @@ class ExperimentResponse(BaseModel):
     current_revision: int
 
 
+class ExperimentDetailResponse(ExperimentResponse):
+    spec: ExperimentSpec
+
+
 class ProposalRequest(BaseModel):
     source: Literal["card", "chat"]
     candidate: ExperimentSpec
@@ -66,6 +70,20 @@ def create_experiment(
 ) -> ExperimentResponse:
     record = services.plan_service.create_experiment(spec)
     return ExperimentResponse(id=record.id, status=record.status, current_revision=1)
+
+
+@router.get("/{experiment_id}", response_model=ExperimentDetailResponse)
+def get_experiment(
+    experiment_id: UUID, services: AppServices = Depends(get_services)
+) -> ExperimentDetailResponse:
+    experiment = services.plan_service.get_experiment(experiment_id)
+    revision = services.plan_service.get_current_revision(experiment_id)
+    return ExperimentDetailResponse(
+        id=experiment.id,
+        status=experiment.status,
+        current_revision=revision.number,
+        spec=revision.spec,
+    )
 
 
 @router.post("/{experiment_id}/proposals", response_model=ProposalResponse)

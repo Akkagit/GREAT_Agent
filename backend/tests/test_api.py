@@ -136,6 +136,23 @@ def test_full_manual_plan_flow(client: TestClient, valid_spec_payload: dict) -> 
     ).status_code == 200
 
 
+def test_get_experiment_returns_current_revision_for_workspace(
+    api_context, valid_spec: ExperimentSpec
+) -> None:
+    client, services, _ = api_context
+    experiment = services.plan_service.create_experiment(valid_spec)
+
+    response = client.get(f"/api/v1/experiments/{experiment.id}")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": str(experiment.id),
+        "status": "draft",
+        "current_revision": 1,
+        "spec": valid_spec.model_dump(mode="json"),
+    }
+
+
 def test_run_is_blocked_when_preflight_has_missing_inputs(
     api_context, valid_spec: ExperimentSpec
 ) -> None:
