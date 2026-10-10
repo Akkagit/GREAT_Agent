@@ -325,11 +325,16 @@ class TaskRepository:
                 ),
             )
 
-    def list_events(self, task_id: UUID) -> tuple[TaskEventRecord, ...]:
+    def list_events(
+        self, task_id: UUID, *, after_sequence: int = 0
+    ) -> tuple[TaskEventRecord, ...]:
         with self._session_factory() as session:
             events = session.scalars(
                 select(TaskEventModel)
-                .where(TaskEventModel.task_id == str(task_id))
+                .where(
+                    TaskEventModel.task_id == str(task_id),
+                    TaskEventModel.sequence > after_sequence,
+                )
                 .order_by(TaskEventModel.sequence)
             ).all()
             return tuple(
@@ -340,6 +345,21 @@ class TaskRepository:
                 )
                 for event in events
             )
+
+    def publish_event(
+        self, task_id: UUID, kind: str, payload: dict[str, Any]
+    ) -> None:
+        with self._session_factory.begin() as session:
+            self._publish_event(session, str(task_id), kind, payload)
+
+    def list_tasks(self, experiment_id: UUID) -> tuple[TaskRecord, ...]:
+        with self._session_factory() as session:
+            ids = session.scalars(
+                select(DailyTaskModel.id)
+                .where(DailyTaskModel.experiment_id == str(experiment_id))
+                .order_by(DailyTaskModel.year, DailyTaskModel.doy)
+            ).all()
+        return tuple(self.get_task(UUID(value)) for value in ids)
 
     def _finish(
         self,

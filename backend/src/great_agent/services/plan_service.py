@@ -119,6 +119,8 @@ class PlanService:
     def preview_revision(
         self, experiment_id: UUID, candidate: ExperimentSpec, *, source: str
     ) -> RevisionPreview:
+        if self.get_experiment(experiment_id).status == "ready":
+            raise PlanFrozenError(f"experiment {experiment_id} is frozen")
         validated = self._validated_copy(candidate)
         current = self.get_current_spec(experiment_id)
         return RevisionPreview(
