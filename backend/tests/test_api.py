@@ -281,3 +281,54 @@ def test_sse_replays_only_events_after_last_event_id(
     assert "id: 1" not in response.text
     assert "id: 2" in response.text
     assert 'data: {"status":"running"}' in response.text
+
+
+def test_task_detail_attempt_logs_and_results_are_available(
+    api_context, valid_spec: ExperimentSpec
+) -> None:
+    client, services, session_factory = api_context
+    _, task_id, _ = seed_task(api_context, valid_spec, status="failed")
+    attempt_one, attempt_two = uuid4(), uuid4()
+    task_dir = services.run_storage.root / str(task_id)
+    task_dir.mkdir(parents=True)
+    first_log = task_dir / "attempt-1.log"
+    second_log = task_dir / "attempt-2.log"
+    result = task_dir / "S000.flt"
+    first_log.write_text("first attempt", encoding="utf-8")
+    second_log.write_text("missing output", encoding="utf-8")
+    result.write_text("solution", encoding="utf-8")
+    result_id = uuid4()
+    with session_factory.begin() as session:
+        task = session.get(DailyTaskModel, str(task_id))
+        session.add_all([
+            TaskAttemptModel(
+                id=str(attempt_one), task_id=str(task_id), number=1,
+                status="failed", exit_code=1, error_code="solver_exit",
+                log_path=str(first_log),
+            ),
+            TaskAttemptModel(
+                id=str(attempt_two), task_id=str(task_id), number=2,
+                status="failed", exit_code=0, error_code="missing_output",
+                log_path=str(second_log),
+            ),
+        ])
+        session.flush()
+        task.active_attempt_id = str(attempt_two)
+        session.add(ResultFileModel(
+            id=str(result_id), task_id=str(task_id), attempt_id=str(attempt_one),
+            station="S000", kind="flt", path=str(result),
+            size_bytes=result.stat().st_size,
+        ))
+
+    detail = client.get(f"/api/v1/tasks/{task_id}")
+    log = client.get(f"/api/v1/tasks/{task_id}/attempts/{attempt_one}/log")
+    results = client.get(f"/api/v1/tasks/{task_id}/attempts/{attempt_one}/results")
+
+    assert detail.status_code == 200
+    assert detail.json()["active_attempt_id"] == str(attempt_two)
+    assert [item["number"] for item in detail.json()["attempts"]] == [1, 2]
+    assert log.json() == {"content": "first attempt"}
+    assert results.json()[0]["filename"] == "S000.flt"
+    download = client.get(results.json()[0]["url"])
+    assert download.status_code == 200
+    assert download.content == b"solution"

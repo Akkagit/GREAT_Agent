@@ -88,6 +88,8 @@ class TaskRecord:
 
 @dataclass(frozen=True)
 class StoredResultFile:
+    id: UUID
+    attempt_id: UUID
     station: str | None
     kind: str
     path: str
@@ -316,6 +318,8 @@ class TaskRepository:
                 active_attempt=self._attempt_record(attempt) if attempt else None,
                 files=tuple(
                     StoredResultFile(
+                        id=UUID(item.id),
+                        attempt_id=UUID(item.attempt_id),
                         station=item.station,
                         kind=item.kind,
                         path=item.path,
@@ -324,6 +328,50 @@ class TaskRepository:
                     for item in files
                 ),
             )
+
+    def list_attempts(self, task_id: UUID) -> tuple[AttemptRecord, ...]:
+        with self._session_factory() as session:
+            attempts = session.scalars(
+                select(TaskAttemptModel)
+                .where(TaskAttemptModel.task_id == str(task_id))
+                .order_by(TaskAttemptModel.number)
+            ).all()
+            return tuple(self._attempt_record(attempt) for attempt in attempts)
+
+    def get_attempt(self, task_id: UUID, attempt_id: UUID) -> AttemptRecord:
+        with self._session_factory() as session:
+            attempt = session.get(TaskAttemptModel, str(attempt_id))
+            if attempt is None or attempt.task_id != str(task_id):
+                raise LookupError(f"unknown attempt: {attempt_id}")
+            return self._attempt_record(attempt)
+
+    def list_attempt_results(
+        self, task_id: UUID, attempt_id: UUID
+    ) -> tuple[StoredResultFile, ...]:
+        self.get_attempt(task_id, attempt_id)
+        with self._session_factory() as session:
+            files = session.scalars(
+                select(ResultFileModel)
+                .where(
+                    ResultFileModel.task_id == str(task_id),
+                    ResultFileModel.attempt_id == str(attempt_id),
+                )
+                .order_by(ResultFileModel.station, ResultFileModel.kind)
+            ).all()
+            return tuple(self._stored_result(item) for item in files)
+
+    def get_result_file(
+        self, task_id: UUID, attempt_id: UUID, file_id: UUID
+    ) -> StoredResultFile:
+        with self._session_factory() as session:
+            item = session.get(ResultFileModel, str(file_id))
+            if (
+                item is None
+                or item.task_id != str(task_id)
+                or item.attempt_id != str(attempt_id)
+            ):
+                raise LookupError(f"unknown result file: {file_id}")
+            return self._stored_result(item)
 
     def list_events(
         self, task_id: UUID, *, after_sequence: int = 0
@@ -398,6 +446,17 @@ class TaskRepository:
             exit_code=attempt.exit_code,
             error_code=attempt.error_code,
             log_path=attempt.log_path,
+        )
+
+    @staticmethod
+    def _stored_result(item: ResultFileModel) -> StoredResultFile:
+        return StoredResultFile(
+            id=UUID(item.id),
+            attempt_id=UUID(item.attempt_id),
+            station=item.station,
+            kind=item.kind,
+            path=item.path,
+            size_bytes=item.size_bytes,
         )
 
     @staticmethod

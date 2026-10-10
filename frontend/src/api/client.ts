@@ -1,4 +1,4 @@
-import type { ExperimentSpec, ExperimentView, Proposal, Revision, ValidationResult } from './types'
+import type { ExperimentSpec, ExperimentView, Proposal, ResultFile, Revision, TaskDetail, TaskEvent, TaskSummary, ValidationResult } from './types'
 
 export const browserConfig = Object.freeze({
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
@@ -48,4 +48,41 @@ export const api = {
     }),
   validateExperiment: (id: string) => request<ValidationResult>(`/experiments/${id}/validate`, { method: 'POST' }),
   freezeExperiment: (id: string) => request<Revision>(`/experiments/${id}/freeze`, { method: 'POST' }),
+  listTasks: (id: string) => request<TaskSummary[]>(`/experiments/${id}/tasks`),
+  getTask: (id: string) => request<TaskDetail>(`/tasks/${id}`),
+  getTaskLog: (taskId: string, attemptId: string) => request<{ content: string }>(`/tasks/${taskId}/attempts/${attemptId}/log`).then((item) => item.content),
+  getTaskResults: (taskId: string, attemptId: string) => request<ResultFile[]>(`/tasks/${taskId}/attempts/${attemptId}/results`),
+  retryTask: (id: string) => request<{ status: string }>(`/tasks/${id}/retry`, { method: 'POST' }),
+  stopExperiment: (id: string) => request<{ status: string }>(`/experiments/${id}/stop`, { method: 'POST' }),
+  openTaskEvents(
+    taskId: string,
+    lastEventId: string | undefined,
+    onEvent: (event: TaskEvent) => void,
+    onDisconnect: () => void,
+  ): () => void {
+    const controller = new AbortController()
+    void fetch(`${browserConfig.apiBaseUrl}/tasks/${taskId}/events`, {
+      headers: { Accept: 'text/event-stream', ...(lastEventId ? { 'Last-Event-ID': lastEventId } : {}) },
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok || !response.body) throw new Error(`SSE ${response.status}`)
+      const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read(); buffer += decoder.decode(value, { stream: !done })
+        const blocks = buffer.split('\n\n'); buffer = blocks.pop() ?? ''
+        for (const block of blocks) {
+          let id = ''; let event = 'message'; const data: string[] = []
+          for (const line of block.split('\n')) {
+            if (line.startsWith('id:')) id = line.slice(3).trim()
+            else if (line.startsWith('event:')) event = line.slice(6).trim()
+            else if (line.startsWith('data:')) data.push(line.slice(5).trim())
+          }
+          if (id && data.length) onEvent({ id, event, data: JSON.parse(data.join('\n')) })
+        }
+        if (done) break
+      }
+      if (!controller.signal.aborted) onDisconnect()
+    }).catch(() => { if (!controller.signal.aborted) onDisconnect() })
+    return () => controller.abort()
+  },
 }

@@ -65,3 +65,10 @@ export interface MissingInput {
 }
 
 export interface ValidationResult { ok: boolean; missing: MissingInput[] }
+
+export type TaskStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted'
+export interface TaskSummary { id: string; experiment_id: string; year: number; doy: number; status: TaskStatus }
+export interface TaskAttempt { id: string; number: number; status: TaskStatus; exit_code: number | null; error_code: string | null }
+export interface TaskDetail extends TaskSummary { active_attempt_id: string | null; attempts: TaskAttempt[] }
+export interface ResultFile { station: string | null; kind: string; filename: string; size_bytes: number; url: string }
+export interface TaskEvent { id: string; event: string; data: { status?: TaskStatus; [key: string]: unknown } }
