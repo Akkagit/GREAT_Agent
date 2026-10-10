@@ -10,6 +10,7 @@ from great_agent.runtime.run_storage import RunStorage
 from great_agent.runtime.worker import Worker
 from great_agent.services.plan_service import PlanService, RevisionPreview
 from great_agent.services.task_service import TaskService
+from great_agent.services.chat_service import ChatService
 
 
 @dataclass
@@ -19,6 +20,7 @@ class AppServices:
     task_repository: TaskRepository
     worker: Worker
     run_storage: RunStorage
+    chat_service: ChatService | None = None
     proposals: dict[UUID, RevisionPreview] = field(default_factory=dict)
 
 

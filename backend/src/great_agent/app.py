@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from great_agent.api.dependencies import AppServices
+from great_agent.api.chat import router as chat_router
 from great_agent.api.events import router as events_router
 from great_agent.api.experiments import router as experiments_router
 from great_agent.api.tasks import router as tasks_router
@@ -15,6 +16,7 @@ from great_agent.errors import (
     TaskStateError,
     UnsafePathError,
 )
+from great_agent.adapters.model_provider import ModelProposalError
 
 
 def create_app(
@@ -27,6 +29,7 @@ def create_app(
         app.include_router(experiments_router)
         app.include_router(tasks_router)
         app.include_router(events_router)
+        app.include_router(chat_router)
 
     def error_response(status_code: int, code: str, message: str, details=None):
         return JSONResponse(
@@ -85,6 +88,11 @@ def create_app(
     async def unsafe_path(request: Request, error: UnsafePathError):
         del request
         return error_response(500, "unsafe_result_path", str(error))
+
+    @app.exception_handler(ModelProposalError)
+    async def model_proposal(request: Request, error: ModelProposalError):
+        del request
+        return error_response(502, "model_proposal_error", str(error))
 
     @app.get("/api/v1/health")
     def health() -> dict[str, str]:
