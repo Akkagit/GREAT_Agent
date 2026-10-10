@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -9,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from great_agent.adapters.great_pppflt import GreatPppfltAdapter
-from great_agent.cli import build_app
+from great_agent.cli import _preflight, build_app
 from great_agent.config import AppSettings, ModelSettings, PppfltSettings
 from great_agent.domain.dates import DateSegment, YearDoy
 from great_agent.domain.plans import ExperimentSpec, Scenario
@@ -81,3 +82,26 @@ def test_mock_user_journey(mock_context) -> None:
     assert [(task["year"], task["doy"]) for task in tasks] == [(2024, 366), (2025, 1)]
     assert all(task["status"] == "succeeded" for task in tasks)
     assert all(len(task["results"]) == 15 for task in tasks)
+
+
+def test_preflight_reports_missing_template_without_starting_solver(
+    mock_context, tmp_path: Path, capsys
+) -> None:
+    app, spec = mock_context
+    settings = app.state.settings.model_copy(
+        update={
+            "pppflt": app.state.settings.pppflt.model_copy(
+                update={"template_path": tmp_path / "missing.xml"}
+            )
+        }
+    )
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(spec.model_dump_json(), encoding="utf-8")
+
+    result = _preflight(settings, str(plan_path))
+    report = json.loads(capsys.readouterr().out)
+
+    assert result == 2
+    assert report["ok"] is False
+    assert any(item["kind"] == "template" for item in report["items"])
+    assert report["tasks"][0]["xml_path"] is None

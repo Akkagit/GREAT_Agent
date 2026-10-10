@@ -10,6 +10,7 @@ import psutil
 import uvicorn
 
 from great_agent.adapters.great_pppflt import GreatPppfltAdapter
+from great_agent.adapters.great_pppflt import RenderedTask
 from great_agent.adapters.openai_compatible import OpenAICompatibleProvider
 from great_agent.api.dependencies import AppServices
 from great_agent.app import create_app
@@ -90,13 +91,22 @@ def _preflight(settings: AppSettings, plan_path: str) -> int:
             spec, date, settings.run_root / "preflight"
         )
         task_dir = settings.run_root / "preflight" / f"{date.year}_{date.doy:03d}"
-        rendered = app.state.services.task_service.adapter.render_task(
-            spec, date, task_dir
+        template_ready = any(
+            item.kind == "template" and item.state == "present"
+            for item in checked.items
+        )
+        rendered = (
+            app.state.services.task_service.adapter.render_task(spec, date, task_dir)
+            if template_ready
+            else RenderedTask(
+                xml_path=task_dir / "config.xml",
+                output_dir=task_dir / "results",
+            )
         )
         tasks.append({
             "year": date.year,
             "doy": date.doy,
-            "xml_path": str(rendered.xml_path),
+            "xml_path": str(rendered.xml_path) if template_ready else None,
             "output_dir": str(rendered.output_dir),
             "command": list(
                 app.state.services.task_service.adapter.build_command(rendered)

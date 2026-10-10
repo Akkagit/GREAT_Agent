@@ -19,7 +19,8 @@ $plan = @{
     input_profile_id = 'local_default'; solver_profile_id = 'great_local'; template_profile_id = 'pppflt_base'
     concurrency = 1; outputs = @('flt','log')
 }
-$plan | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $planPath -Encoding utf8
+$planJson = $plan | ConvertTo-Json -Depth 8
+[System.IO.File]::WriteAllText($planPath, $planJson, [System.Text.UTF8Encoding]::new($false))
 Push-Location $projectRoot
 try {
     if ($PreflightOnly) { & uv run great-agent preflight --config $configPath --plan $planPath }
