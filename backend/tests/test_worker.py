@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import shutil
+import sys
 from uuid import uuid4
 
 import pytest
@@ -14,8 +16,17 @@ from great_agent.db.models import (
     PlanRevisionModel,
 )
 from great_agent.db.repositories import TaskRepository
+from great_agent.adapters.great_pppflt import GreatPppfltAdapter, RenderedTask
+from great_agent.config import PppfltSettings
+from great_agent.domain.dates import DateSegment, YearDoy
+from great_agent.domain.plans import ExperimentSpec, Scenario
 from great_agent.errors import TaskStateError
+from great_agent.runtime.process_runner import ProcessRunner
 from great_agent.runtime.result_inspector import PppfltResultInspector
+from great_agent.runtime.run_storage import RunStorage
+from great_agent.runtime.worker import Worker
+from great_agent.services.plan_service import PlanService
+from great_agent.services.task_service import TaskService
 
 
 DEFAULT_STATIONS = (
@@ -182,3 +193,155 @@ def test_missing_station_check_rejects_empty_flt(
     )
 
     assert report.missing_stations == (DEFAULT_STATIONS[-1],)
+
+
+def make_worker_spec() -> ExperimentSpec:
+    return ExperimentSpec(
+        scenario=Scenario(mode="static", frequency="DF", ambiguity="float"),
+        date_segments=(DateSegment(year=2024, start_doy=350, end_doy=350),),
+        station_group_id="default_15",
+        stations=DEFAULT_STATIONS,
+    )
+
+
+@pytest.fixture
+def worker_factory(tmp_path: Path):
+    def create(mode: str):
+        root = tmp_path / mode
+        engine, session_factory = create_engine_and_session_factory(root / "state.db")
+        Base.metadata.create_all(engine)
+        plan_service = PlanService(session_factory)
+        template = root / "template.xml"
+        template.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(
+            Path(__file__).parent / "fixtures" / "minimal_pppflt.xml", template
+        )
+        executable = root / "GREAT_PVT.exe"
+        executable.write_bytes(b"mock")
+        adapter = GreatPppfltAdapter(
+            PppfltSettings(
+                executable=executable,
+                template_path=template,
+                observation_root=root / "observations",
+                product_root=root / "products",
+            )
+        )
+        storage = RunStorage(root / "runs")
+        spec = make_worker_spec()
+        experiment = plan_service.create_experiment(spec)
+        plan_service.freeze_revision(experiment.id, expected_revision=1)
+        for item in adapter.preflight_task(
+            spec, YearDoy(year=2024, doy=350), Path("unused")
+        ).missing:
+            item.path.parent.mkdir(parents=True, exist_ok=True)
+            item.path.write_bytes(b"input")
+        task_service = TaskService(
+            session_factory=session_factory,
+            plan_service=plan_service,
+            adapter=adapter,
+            run_storage=storage,
+        )
+        task = task_service.materialize(experiment.id)[0]
+        selected_mode = {"value": mode}
+        solver = Path(__file__).parent / "fixtures" / "mock_solver.py"
+
+        def command_factory(rendered: RenderedTask, attempt_dir: Path) -> tuple[str, ...]:
+            return (
+                sys.executable,
+                str(solver),
+                "--mode",
+                selected_mode["value"],
+                "--output-dir",
+                str(rendered.output_dir),
+                "--stations",
+                ",".join(DEFAULT_STATIONS),
+            )
+
+        repository = TaskRepository(session_factory)
+        worker = Worker(
+            repository=repository,
+            plan_service=plan_service,
+            adapter=adapter,
+            run_storage=storage,
+            process_runner=ProcessRunner(cancel_grace_seconds=0.2),
+            result_inspector=PppfltResultInspector(),
+            max_concurrency=1,
+            command_factory=command_factory,
+        )
+        return worker, task, selected_mode
+
+    return create
+
+
+async def wait_until_running(repository: TaskRepository, task_id, timeout: float = 5) -> None:
+    import asyncio
+
+    deadline = asyncio.get_running_loop().time() + timeout
+    while asyncio.get_running_loop().time() < deadline:
+        task = repository.get_task(task_id)
+        if task.status == "running" and task.active_attempt.pid is not None:
+            return
+        await asyncio.sleep(0.01)
+    raise AssertionError("task did not start")
+
+
+async def test_worker_records_success_and_files(worker_factory) -> None:
+    worker, task, _ = worker_factory("success")
+
+    await worker.run_once()
+
+    stored = worker.repository.get_task(task.id)
+    assert stored.status == "succeeded"
+    assert stored.active_attempt.exit_code == 0
+    assert len(stored.result_files(kind="flt")) == 15
+
+
+async def test_worker_records_nonzero_exit(worker_factory) -> None:
+    worker, task, _ = worker_factory("fail")
+
+    await worker.run_once()
+
+    attempt = worker.repository.get_task(task.id).active_attempt
+    assert attempt.status == "failed"
+    assert attempt.error_code == "solver_exit_error"
+
+
+async def test_worker_records_missing_output_after_zero_exit(worker_factory) -> None:
+    worker, task, _ = worker_factory("missing")
+
+    await worker.run_once()
+
+    attempt = worker.repository.get_task(task.id).active_attempt
+    assert attempt.exit_code == 0
+    assert attempt.status == "failed"
+    assert attempt.error_code == "missing_output_error"
+
+
+async def test_cancel_stops_process_and_preserves_log(worker_factory) -> None:
+    import asyncio
+
+    worker, task, _ = worker_factory("slow")
+    run = asyncio.create_task(worker.run_once())
+    await wait_until_running(worker.repository, task.id)
+
+    await worker.cancel_experiment(task.experiment_id)
+    await run
+
+    stored = worker.repository.get_task(task.id)
+    assert stored.status == "cancelled"
+    assert Path(stored.active_attempt.log_path).is_file()
+
+
+async def test_retry_creates_new_attempt_and_retains_old_log(worker_factory) -> None:
+    worker, task, selected_mode = worker_factory("fail")
+    await worker.run_once()
+    first = worker.repository.get_task(task.id).active_attempt
+    selected_mode["value"] = "success"
+
+    worker.retry(task.id)
+    await worker.run_once()
+
+    second = worker.repository.get_task(task.id).active_attempt
+    assert second.number == 2
+    assert second.status == "succeeded"
+    assert Path(first.log_path).is_file()

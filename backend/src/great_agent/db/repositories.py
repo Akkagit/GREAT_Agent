@@ -12,6 +12,7 @@ from great_agent.db.models import (
     DailyTaskModel,
     ExperimentModel,
     PlanRevisionModel,
+    ResultFileModel,
     TaskAttemptModel,
     TaskEventModel,
     utc_now,
@@ -77,6 +78,20 @@ class TaskRecord:
     status: str
     worker_id: str | None
     active_attempt: AttemptRecord | None
+    files: tuple["StoredResultFile", ...]
+
+    def result_files(self, *, kind: str | None = None) -> tuple["StoredResultFile", ...]:
+        if kind is None:
+            return self.files
+        return tuple(item for item in self.files if item.kind == kind)
+
+
+@dataclass(frozen=True)
+class StoredResultFile:
+    station: str | None
+    kind: str
+    path: str
+    size_bytes: int
 
 
 @dataclass(frozen=True)
@@ -171,6 +186,80 @@ class TaskRepository:
     ) -> None:
         self._finish(task_id, attempt_id, "succeeded", exit_code, None)
 
+    def mark_attempt_failed(
+        self,
+        task_id: UUID,
+        attempt_id: UUID,
+        *,
+        exit_code: int | None,
+        error_code: str,
+    ) -> None:
+        self._finish(task_id, attempt_id, "failed", exit_code, error_code)
+
+    def mark_attempt_cancelled(
+        self, task_id: UUID, attempt_id: UUID, *, exit_code: int | None
+    ) -> None:
+        self._finish(task_id, attempt_id, "cancelled", exit_code, None)
+
+    def set_attempt_log_path(
+        self, task_id: UUID, attempt_id: UUID, log_path: str
+    ) -> None:
+        with self._session_factory.begin() as session:
+            changed = session.execute(
+                update(TaskAttemptModel)
+                .where(
+                    TaskAttemptModel.id == str(attempt_id),
+                    TaskAttemptModel.task_id == str(task_id),
+                    TaskAttemptModel.status == "running",
+                )
+                .values(log_path=log_path)
+            )
+            if changed.rowcount != 1:
+                raise TaskStateError("log path requires an active running attempt")
+
+    def add_result_files(
+        self,
+        task_id: UUID,
+        attempt_id: UUID,
+        files: tuple[object, ...],
+    ) -> None:
+        with self._session_factory.begin() as session:
+            for item in files:
+                session.add(
+                    ResultFileModel(
+                        id=str(uuid4()),
+                        task_id=str(task_id),
+                        attempt_id=str(attempt_id),
+                        station=getattr(item, "station"),
+                        kind=getattr(item, "kind"),
+                        path=str(getattr(item, "path")),
+                        size_bytes=getattr(item, "size_bytes"),
+                    )
+                )
+
+    def retry_task(self, task_id: UUID) -> None:
+        with self._session_factory.begin() as session:
+            changed = session.execute(
+                update(DailyTaskModel)
+                .where(
+                    DailyTaskModel.id == str(task_id),
+                    DailyTaskModel.status.in_(("failed", "interrupted")),
+                )
+                .values(status="pending", worker_id=None, updated_at=utc_now())
+            )
+            if changed.rowcount != 1:
+                raise TaskStateError("only failed or interrupted tasks can be retried")
+
+    def running_task_ids(self, experiment_id: UUID) -> tuple[UUID, ...]:
+        with self._session_factory() as session:
+            ids = session.scalars(
+                select(DailyTaskModel.id).where(
+                    DailyTaskModel.experiment_id == str(experiment_id),
+                    DailyTaskModel.status == "running",
+                )
+            ).all()
+            return tuple(UUID(value) for value in ids)
+
     def recover_stale_tasks(self, active_pids: set[int]) -> None:
         with self._session_factory.begin() as session:
             tasks = session.scalars(
@@ -210,6 +299,12 @@ class TaskRepository:
                 if task.active_attempt_id
                 else None
             )
+            files = session.scalars(
+                select(ResultFileModel).where(
+                    ResultFileModel.task_id == task.id,
+                    ResultFileModel.attempt_id == task.active_attempt_id,
+                )
+            ).all() if task.active_attempt_id else []
             return TaskRecord(
                 id=UUID(task.id),
                 experiment_id=UUID(task.experiment_id),
@@ -219,6 +314,15 @@ class TaskRepository:
                 status=task.status,
                 worker_id=task.worker_id,
                 active_attempt=self._attempt_record(attempt) if attempt else None,
+                files=tuple(
+                    StoredResultFile(
+                        station=item.station,
+                        kind=item.kind,
+                        path=item.path,
+                        size_bytes=item.size_bytes,
+                    )
+                    for item in files
+                ),
             )
 
     def list_events(self, task_id: UUID) -> tuple[TaskEventRecord, ...]:
