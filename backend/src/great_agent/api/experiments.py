@@ -171,6 +171,14 @@ def list_experiment_tasks(
             "year": task.year,
             "doy": task.doy,
             "status": task.status,
+            "results": [
+                {
+                    "station": item.station,
+                    "kind": item.kind,
+                    "size_bytes": item.size_bytes,
+                }
+                for item in task.result_files(kind="flt")
+            ],
         }
         for task in services.task_repository.list_tasks(experiment_id)
     ]
