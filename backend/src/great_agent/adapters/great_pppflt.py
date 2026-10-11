@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from great_agent.adapters.pppflt_preflight import PreflightReport, inspect_files
@@ -43,26 +44,38 @@ class GreatPppfltAdapter:
             raise XmlValidationError(f"cannot parse template: {error}") from error
         root = tree.getroot()
         paths = self._input_paths(spec, date)
+        native_template = root.find("./gen/beg") is not None
 
         set_text(root, "./gen/rec", " ".join(spec.stations))
-        set_text(root, "./gen/mode", spec.scenario.mode)
-        set_text(root, "./gen/year", str(date.year))
-        set_text(root, "./gen/doy", f"{date.doy:03d}")
+        if native_template:
+            day = datetime(date.year, 1, 1) + timedelta(days=date.doy - 1)
+            set_text(root, "./gen/beg", day.strftime("%Y-%m-%d 00:00:00"))
+            set_text(root, "./gen/end", day.strftime("%Y-%m-%d 23:59:30"))
+            set_text(
+                root,
+                "./process/pos_kin",
+                "true" if spec.scenario.mode == "kinematic" else "false",
+            )
+        else:
+            set_text(root, "./gen/mode", spec.scenario.mode)
+            set_text(root, "./gen/year", str(date.year))
+            set_text(root, "./gen/doy", f"{date.doy:03d}")
         set_text(root, "./inputs/rinexo", " ".join(map(str, paths["observation"])))
-        for kind in (
-            "rinexn",
-            "sp3",
-            "clk",
-            "bias",
-            "ifcb",
-            "upd",
-            "antenna",
-            "tide",
-            "erp",
-            "planetary",
-        ):
+        input_nodes = {
+            "rinexn": ("rinexn",),
+            "sp3": ("sp3",),
+            "clk": ("clk", "rinexc"),
+            "bias": ("bias",),
+            "ifcb": ("ifcb",),
+            "upd": ("upd",),
+            "antenna": ("antenna", "atx"),
+            "tide": ("tide", "blq"),
+            "erp": ("erp", "eop"),
+            "planetary": ("planetary", "de"),
+        }
+        for kind, aliases in input_nodes.items():
             if kind in paths:
-                set_text(root, f"./inputs/{kind}", str(paths[kind]))
+                self._set_first(root, aliases, str(paths[kind]))
 
         products = required_products(spec.scenario)
         if ProductKind.IFCB not in products:
@@ -77,12 +90,26 @@ class GreatPppfltAdapter:
         set_text(
             root,
             "./ambiguity/fix_mode",
-            "YES" if spec.scenario.ambiguity == "fixed" else "NO",
+            ("SEARCH" if native_template else "YES")
+            if spec.scenario.ambiguity == "fixed"
+            else "NO",
         )
         require_node(root, "./filter").set(
             "reset_par", str(spec.scenario.reset_hours)
         )
-        set_text(root, "./outputs/root", str(output_dir))
+        if native_template:
+            for name in ("ppp", "flt"):
+                node = require_node(root, f"./outputs/{name}")
+                filename = Path(node.text.strip()).name
+                if name == "flt":
+                    filename = (
+                        "$(rec)-PPP_sta_"
+                        f"{spec.scenario.frequency}_"
+                        f"{spec.scenario.ambiguity.capitalize()}.flt"
+                    )
+                node.text = f" {output_dir / filename} "
+        else:
+            set_text(root, "./outputs/root", str(output_dir))
 
         xml_path = resolved_task_dir / "config.xml"
         write_xml(tree, str(xml_path))
@@ -185,23 +212,47 @@ class GreatPppfltAdapter:
             root = ET.parse(rendered.xml_path).getroot()
         except (ET.ParseError, OSError) as error:
             raise XmlValidationError(f"rendered XML cannot be parsed: {error}") from error
+        native_template = root.find("./gen/beg") is not None
+        day = datetime(date.year, 1, 1) + timedelta(days=date.doy - 1)
         checks = {
-            "mode": require_node(root, "./gen/mode").text.strip()
-            == spec.scenario.mode,
-            "year": require_node(root, "./gen/year").text.strip()
-            == str(date.year),
-            "doy": require_node(root, "./gen/doy").text.strip()
-            == f"{date.doy:03d}",
+            "mode": (
+                require_node(root, "./process/pos_kin").text.strip()
+                == ("true" if spec.scenario.mode == "kinematic" else "false")
+                if native_template
+                else require_node(root, "./gen/mode").text.strip()
+                == spec.scenario.mode
+            ),
+            "date": (
+                require_node(root, "./gen/beg").text.strip().startswith(
+                    day.strftime("%Y-%m-%d")
+                )
+                if native_template
+                else (
+                    require_node(root, "./gen/year").text.strip()
+                    == str(date.year)
+                    and require_node(root, "./gen/doy").text.strip()
+                    == f"{date.doy:03d}"
+                )
+            ),
             "stations": tuple(require_node(root, "./gen/rec").text.split())
             == spec.stations,
             "frequency": require_node(root, "./process/frequency").text.strip()
             == ("3" if spec.scenario.frequency == "TF" else "2"),
             "ambiguity": require_node(root, "./ambiguity/fix_mode").text.strip()
-            == ("YES" if spec.scenario.ambiguity == "fixed" else "NO"),
+            == (
+                ("SEARCH" if native_template else "YES")
+                if spec.scenario.ambiguity == "fixed"
+                else "NO"
+            ),
             "reset": require_node(root, "./filter").get("reset_par")
             == str(spec.scenario.reset_hours),
-            "output": require_node(root, "./outputs/root").text.strip()
-            == str(rendered.output_dir),
+            "output": (
+                Path(require_node(root, "./outputs/flt").text.strip()).parent
+                == rendered.output_dir
+                if native_template
+                else require_node(root, "./outputs/root").text.strip()
+                == str(rendered.output_dir)
+            ),
             "ifcb": (root.find("./inputs/ifcb") is not None)
             == (ProductKind.IFCB in products),
             "upd": (root.find("./inputs/upd") is not None)
@@ -212,3 +263,14 @@ class GreatPppfltAdapter:
             raise XmlValidationError(
                 f"rendered XML does not match frozen plan: {', '.join(failed)}"
             )
+
+    @staticmethod
+    def _set_first(root: ET.Element, aliases: tuple[str, ...], value: str) -> None:
+        for alias in aliases:
+            node = root.find(f"./inputs/{alias}")
+            if node is not None:
+                node.text = f" {value} "
+                return
+        raise XmlValidationError(
+            f"missing XML node: one of {', '.join(f'./inputs/{name}' for name in aliases)}"
+        )

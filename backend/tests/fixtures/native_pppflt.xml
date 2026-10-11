@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+  <gen>
+    <beg>2024-12-15 00:00:00</beg>
+    <end>2024-12-15 23:59:30</end>
+    <int>30</int>
+    <sys>BDS GPS</sys>
+    <rec>OLD0</rec>
+    <est>FLT</est>
+  </gen>
+  <inputs>
+    <rinexo>old.obs</rinexo>
+    <rinexn>old.nav</rinexn>
+    <rinexc>old.clk</rinexc>
+    <sp3>old.sp3</sp3>
+    <de>old.de</de>
+    <atx>old.atx</atx>
+    <blq>old.blq</blq>
+    <eop>old.eop</eop>
+    <bias>old.bias</bias>
+    <ifcb>old.ifcb</ifcb>
+    <upd>old.upd</upd>
+  </inputs>
+  <outputs append="false" verb="0">
+    <log type="CONSOLE" name="ppp" level="INFO" />
+    <ppp>.\old\$(rec)-PPP</ppp>
+    <flt>.\old\$(rec)-PPP_sta_TF_Fixed.flt</flt>
+  </outputs>
+  <process>
+    <pos_kin>false</pos_kin>
+    <frequency>3</frequency>
+  </process>
+  <filter reset_par="0" />
+  <ambiguity><fix_mode>SEARCH</fix_mode></ambiguity>
+</config>

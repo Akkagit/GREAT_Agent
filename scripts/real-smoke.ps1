@@ -15,7 +15,11 @@ $plan = @{
     scenario = @{ mode = 'static'; frequency = 'DF'; ambiguity = 'float'; reset_hours = 0 }
     date_segments = @(@{ year = 2024; start_doy = 350; end_doy = 350 })
     excluded_dates = @(); station_group_id = 'default_15'
-    stations = @('S000','S001','S002','S003','S004','S005','S006','S007','S008','S009','S010','S011','S012','S013','S014')
+    stations = @(
+        'AHB0','BJB0','GDA4','GSE4','GXC4',
+        'HBB2','HJE2','HNB1','JL18','LNC1',
+        'QHA4','SCI5','SD10','SXE4','YNJ8'
+    )
     input_profile_id = 'local_default'; solver_profile_id = 'great_local'; template_profile_id = 'pppflt_base'
     concurrency = 1; outputs = @('flt','log')
 }

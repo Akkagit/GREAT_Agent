@@ -187,6 +187,44 @@ def test_unrelated_template_text_is_unchanged(
     assert root.findtext("./meta") == "Reference campaign 2024 used DOY 350."
 
 
+def test_native_great_template_aliases_render_df_float_safely(
+    tmp_path: Path, df_float_spec: ExperimentSpec
+) -> None:
+    template = tmp_path / "native.xml"
+    shutil.copyfile(
+        Path(__file__).parent / "fixtures" / "native_pppflt.xml", template
+    )
+    executable = tmp_path / "GREAT_PVT.exe"
+    executable.touch()
+    adapter = GreatPppfltAdapter(
+        PppfltSettings(
+            executable=executable,
+            template_path=template,
+            observation_root=tmp_path / "observations",
+            product_root=tmp_path / "products",
+        )
+    )
+
+    rendered = adapter.render_task(
+        df_float_spec, YearDoy(year=2025, doy=6), tmp_path / "task"
+    )
+    root = ET.parse(rendered.xml_path).getroot()
+
+    assert root.findtext("./gen/beg").strip() == "2025-01-06 00:00:00"
+    assert root.findtext("./gen/end").strip() == "2025-01-06 23:59:30"
+    assert root.findtext("./process/pos_kin").strip() == "false"
+    assert "2025006" in root.findtext("./inputs/rinexc")
+    assert root.findtext("./inputs/atx").strip().endswith("models\\igs20.atx")
+    assert root.find("./inputs/ifcb") is None
+    assert root.find("./inputs/upd") is None
+    assert root.findtext("./ambiguity/fix_mode").strip() == "NO"
+    assert Path(root.findtext("./outputs/flt").strip()).parent == rendered.output_dir
+    assert "$(rec)" in root.findtext("./outputs/flt")
+    assert root.findtext("./outputs/flt").strip().endswith(
+        "$(rec)-PPP_sta_DF_Float.flt"
+    )
+
+
 def test_strict_preflight_reports_exact_missing_station(
     adapter: GreatPppfltAdapter, df_float_spec: ExperimentSpec, tmp_path: Path
 ) -> None:
