@@ -6,9 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#17243b" />
     <title>GREAT Agent · PPP-FLT 本地编排台</title>
+    <style>
+      #file-entry-notice[hidden] { display: none; }
+      #file-entry-notice { min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; color: #17243b; background: #f5f7fa; font-family: "Segoe UI Variable", "Microsoft YaHei UI", sans-serif; }
+      #file-entry-notice section { width: min(680px, 100%); padding: 42px; box-sizing: border-box; background: white; border: 1px solid #d7dee9; border-left: 6px solid #0891b2; }
+      #file-entry-notice h1 { margin: 0 0 18px; font-size: 30px; }
+      #file-entry-notice p { margin: 9px 0; color: #647188; line-height: 1.7; }
+      #file-entry-notice code { display: block; margin-top: 20px; padding: 13px; overflow-wrap: anywhere; color: #fff; background: #17243b; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main id="file-entry-notice" role="alert" hidden>
+        <section>
+          <h1>请通过本地服务打开</h1>
+          <p>GREAT Agent 需要本地 API，不能直接双击构建后的 HTML 文件运行。</p>
+          <p>在项目目录执行启动脚本，然后访问：</p>
+          <code>http://127.0.0.1:8765/</code>
+        </section>
+      </main>
+    </div>
+    <script>
+      if (window.location.protocol === 'file:') {
+        document.getElementById('file-entry-notice').removeAttribute('hidden')
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

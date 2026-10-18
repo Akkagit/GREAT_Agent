@@ -39,6 +39,12 @@ export interface ExperimentView {
   spec: ExperimentSpec
 }
 
+export interface CreatedExperiment {
+  id: string
+  status: string
+  current_revision: number
+}
+
 export interface FieldDiff { path: string; before: unknown; after: unknown }
 
 export interface Proposal {

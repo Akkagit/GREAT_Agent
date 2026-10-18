@@ -1,4 +1,4 @@
-import type { ExperimentSpec, ExperimentView, Proposal, ResultFile, Revision, TaskDetail, TaskEvent, TaskSummary, ValidationResult } from './types'
+import type { CreatedExperiment, ExperimentSpec, ExperimentView, Proposal, ResultFile, Revision, TaskDetail, TaskEvent, TaskSummary, ValidationResult } from './types'
 
 export const browserConfig = Object.freeze({
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
@@ -34,6 +34,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  createExperiment: (spec: ExperimentSpec) => request<CreatedExperiment>('/experiments', {
+    method: 'POST', body: JSON.stringify(spec),
+  }),
   getExperiment: (id: string) => request<ExperimentView>(`/experiments/${id}`),
   proposeChat: (id: string, message: string) => request<Proposal>('/chat/proposals', {
     method: 'POST', body: JSON.stringify({ experiment_id: id, message }),
