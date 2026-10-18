@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#17243b" flood-opacity="0.09"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#31445f"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2f65b8"/>
+    </marker>
+    <style>
+      text { font-family: "Microsoft YaHei UI", "Noto Sans SC", "Segoe UI", sans-serif; fill: #17243b; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #647188; }
+      .region-title { font-size: 21px; font-weight: 700; }
+      .section-title { font-size: 17px; font-weight: 700; }
+      .box-title { font-size: 15px; font-weight: 700; }
+      .box-copy { font-size: 13px; fill: #56667d; }
+      .small { font-size: 12px; fill: #647188; }
+      .flow { fill: none; stroke: #31445f; stroke-width: 2; marker-end: url(#arrow); }
+      .flow-bi { fill: none; stroke: #31445f; stroke-width: 2; marker-start: url(#arrow); marker-end: url(#arrow); }
+      .flow-blue { fill: none; stroke: #2f65b8; stroke-width: 2.2; marker-end: url(#arrowBlue); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="#f8fafc"/>
+  <text x="800" y="48" text-anchor="middle" class="title">GREAT Agent 第一版总体架构</text>
+  <text x="800" y="75" text-anchor="middle" class="subtitle">本地 Windows · PPPFLT 垂直切片 · 计划可审计 · 输入只读 · 任务可恢复</text>
+
+  <!-- User and UI -->
+  <rect x="38" y="128" width="250" height="612" rx="20" fill="#f6f3ff" stroke="#806bb6" stroke-width="2" filter="url(#shadow)"/>
+  <text x="163" y="166" text-anchor="middle" class="region-title" fill="#624b9b">用户与交互层</text>
+
+  <rect x="62" y="194" width="202" height="108" rx="13" fill="#ffffff" stroke="#b9add8" stroke-width="1.5"/>
+  <circle cx="103" cy="240" r="17" fill="#7c67b2" opacity="0.18"/>
+  <circle cx="103" cy="232" r="8" fill="#6e58a6"/>
+  <path d="M88 257 Q103 242 118 257" fill="#6e58a6"/>
+  <text x="139" y="238" class="box-title">科研用户</text>
+  <text x="139" y="259" class="box-copy">单机本地使用</text>
+
+  <rect x="62" y="322" width="202" height="174" rx="13" fill="#ffffff" stroke="#b9add8" stroke-width="1.5"/>
+  <text x="163" y="355" text-anchor="middle" class="section-title">React Web 工作台</text>
+  <rect x="82" y="374" width="162" height="30" rx="6" fill="#eee9fb"/>
+  <text x="163" y="394" text-anchor="middle" class="box-copy">对话 + 参数卡片</text>
+  <rect x="82" y="414" width="162" height="30" rx="6" fill="#eee9fb"/>
+  <text x="163" y="434" text-anchor="middle" class="box-copy">差异审核 + 冻结</text>
+  <rect x="82" y="454" width="162" height="30" rx="6" fill="#eee9fb"/>
+  <text x="163" y="474" text-anchor="middle" class="box-copy">任务看板 + 日志结果</text>
+
+  <rect x="62" y="516" width="202" height="194" rx="13" fill="#ffffff" stroke="#b9add8" stroke-width="1.5"/>
+  <text x="163" y="549" text-anchor="middle" class="section-title">主要操作</text>
+  <text x="86" y="581" class="box-copy">• 创建与编辑实验计划</text>
+  <text x="86" y="611" class="box-copy">• 输入预检与计划冻结</text>
+  <text x="86" y="641" class="box-copy">• 启动 / 停止 / 重试</text>
+  <text x="86" y="671" class="box-copy">• 查看日志与 FLT 结果</text>
+
+  <!-- Core -->
+  <rect x="338" y="105" width="864" height="665" rx="22" fill="#f5f9ff" stroke="#2f65b8" stroke-width="2.2" filter="url(#shadow)"/>
+  <text x="770" y="143" text-anchor="middle" class="region-title" fill="#24579f">GREAT Agent 核心</text>
+
+  <!-- Planning -->
+  <rect x="370" y="168" width="800" height="144" rx="16" fill="#fbfdff" stroke="#7da5dc" stroke-width="1.6" class="dash"/>
+  <text x="770" y="196" text-anchor="middle" class="section-title" fill="#24579f">理解、计划与安全闸门</text>
+
+  <rect x="392" y="216" width="174" height="72" rx="10" fill="#eef5ff" stroke="#a5c0e7"/>
+  <text x="479" y="242" text-anchor="middle" class="box-title">Qwen 计划提案</text>
+  <text x="479" y="266" text-anchor="middle" class="box-copy">自然语言 → Typed Plan</text>
+
+  <rect x="584" y="216" width="174" height="72" rx="10" fill="#eef5ff" stroke="#a5c0e7"/>
+  <text x="671" y="242" text-anchor="middle" class="box-title">卡片与差异审核</text>
+  <text x="671" y="266" text-anchor="middle" class="box-copy">预览 · 接受 · 拒绝</text>
+
+  <rect x="776" y="216" width="174" height="72" rx="10" fill="#eef5ff" stroke="#a5c0e7"/>
+  <text x="863" y="242" text-anchor="middle" class="box-title">严格输入预检</text>
+  <text x="863" y="266" text-anchor="middle" class="box-copy">日期 · 测站 · 产品文件</text>
+
+  <rect x="968" y="216" width="174" height="72" rx="10" fill="#eef5ff" stroke="#a5c0e7"/>
+  <text x="1055" y="242" text-anchor="middle" class="box-title">版本化与冻结</text>
+  <text x="1055" y="266" text-anchor="middle" class="box-copy">确认后才允许创建任务</text>
+
+  <!-- Services -->
+  <rect x="370" y="334" width="800" height="150" rx="16" fill="#f4fbf7" stroke="#6cad8c" stroke-width="1.6"/>
+  <text x="770" y="363" text-anchor="middle" class="section-title" fill="#276c51">FastAPI 服务与领域层</text>
+
+  <rect x="392" y="386" width="174" height="72" rx="10" fill="#ffffff" stroke="#9bcbb3"/>
+  <text x="479" y="412" text-anchor="middle" class="box-title">Experiment API</text>
+  <text x="479" y="436" text-anchor="middle" class="box-copy">HTTP · Revision · Freeze</text>
+
+  <rect x="584" y="386" width="174" height="72" rx="10" fill="#ffffff" stroke="#9bcbb3"/>
+  <text x="671" y="412" text-anchor="middle" class="box-title">Plan Service</text>
+  <text x="671" y="436" text-anchor="middle" class="box-copy">日期展开 · 规则校验</text>
+
+  <rect x="776" y="386" width="174" height="72" rx="10" fill="#ffffff" stroke="#9bcbb3"/>
+  <text x="863" y="412" text-anchor="middle" class="box-title">Task Service</text>
+  <text x="863" y="436" text-anchor="middle" class="box-copy">每日任务 · 状态机</text>
+
+  <rect x="968" y="386" width="174" height="72" rx="10" fill="#ffffff" stroke="#9bcbb3"/>
+  <text x="1055" y="412" text-anchor="middle" class="box-title">事件与结果 API</text>
+  <text x="1055" y="436" text-anchor="middle" class="box-copy">SSE · 日志 · 下载</text>
+
+  <!-- Execution -->
+  <rect x="370" y="506" width="800" height="220" rx="16" fill="#fffbf2" stroke="#d8a552" stroke-width="1.6"/>
+  <text x="770" y="536" text-anchor="middle" class="section-title" fill="#915c0d">独立 Worker 与确定性执行</text>
+
+  <rect x="392" y="560" width="174" height="90" rx="10" fill="#ffffff" stroke="#e3bd7e"/>
+  <text x="479" y="587" text-anchor="middle" class="box-title">任务领取与恢复</text>
+  <text x="479" y="611" text-anchor="middle" class="box-copy">SQLite 原子领取</text>
+  <text x="479" y="631" text-anchor="middle" class="small">停止 · 重试 · 中断恢复</text>
+
+  <rect x="584" y="560" width="174" height="90" rx="10" fill="#ffffff" stroke="#e3bd7e"/>
+  <text x="671" y="587" text-anchor="middle" class="box-title">GreatPppfltAdapter</text>
+  <text x="671" y="611" text-anchor="middle" class="box-copy">结构化生成 XML</text>
+  <text x="671" y="631" text-anchor="middle" class="small">路径约束 · 参数数组</text>
+
+  <rect x="776" y="560" width="174" height="90" rx="10" fill="#ffffff" stroke="#e3bd7e"/>
+  <text x="863" y="587" text-anchor="middle" class="box-title">Process Runner</text>
+  <text x="863" y="611" text-anchor="middle" class="box-copy">调用 GREAT_PVT.exe</text>
+  <text x="863" y="631" text-anchor="middle" class="small">PID · 退出码 · 日志</text>
+
+  <rect x="968" y="560" width="174" height="90" rx="10" fill="#ffffff" stroke="#e3bd7e"/>
+  <text x="1055" y="587" text-anchor="middle" class="box-title">Result Inspector</text>
+  <text x="1055" y="611" text-anchor="middle" class="box-copy">检查 15 个 FLT</text>
+  <text x="1055" y="631" text-anchor="middle" class="small">分类错误 · 登记结果</text>
+
+  <path d="M566 605 H576" class="flow"/>
+  <path d="M758 605 H768" class="flow"/>
+  <path d="M950 605 H960" class="flow"/>
+  <text x="770" y="690" text-anchor="middle" class="small">每个日期 = 1 个可恢复任务；每个任务保留 15 个测站</text>
+
+  <!-- External -->
+  <rect x="1250" y="128" width="312" height="612" rx="20" fill="#f3fbf7" stroke="#39866a" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1406" y="166" text-anchor="middle" class="region-title" fill="#276c51">外部资源与执行边界</text>
+
+  <rect x="1275" y="194" width="262" height="92" rx="13" fill="#ffffff" stroke="#8fc4aa" stroke-width="1.5"/>
+  <text x="1406" y="226" text-anchor="middle" class="section-title">Qwen 兼容模型 API</text>
+  <text x="1406" y="251" text-anchor="middle" class="box-copy">仅提出结构化计划候选</text>
+  <text x="1406" y="271" text-anchor="middle" class="small">不生成命令，不直接执行</text>
+
+  <rect x="1275" y="306" width="262" height="178" rx="13" fill="#ffffff" stroke="#8fc4aa" stroke-width="1.5"/>
+  <text x="1406" y="338" text-anchor="middle" class="section-title">只读科研输入</text>
+  <text x="1300" y="371" class="box-copy">• RINEX 观测文件（15 测站）</text>
+  <text x="1300" y="400" class="box-copy">• 导航 / 轨道 / 钟差 / DCB</text>
+  <text x="1300" y="429" class="box-copy">• 天线 / 潮汐 / ERP / 行星星历</text>
+  <text x="1300" y="458" class="box-copy">• GREAT PPPFLT XML 模板</text>
+
+  <rect x="1275" y="504" width="262" height="92" rx="13" fill="#ffffff" stroke="#8fc4aa" stroke-width="1.5"/>
+  <text x="1406" y="538" text-anchor="middle" class="section-title">GREAT_PVT.exe</text>
+  <text x="1406" y="566" text-anchor="middle" class="box-copy">现有数值解算程序</text>
+
+  <rect x="1275" y="616" width="262" height="94" rx="13" fill="#ffffff" stroke="#8fc4aa" stroke-width="1.5"/>
+  <text x="1406" y="650" text-anchor="middle" class="section-title">隔离运行输出</text>
+  <text x="1406" y="677" text-anchor="middle" class="box-copy">config.xml · attempt.log · *.flt</text>
+  <text x="1406" y="697" text-anchor="middle" class="small">全部写入 GREAT_Agent/runs</text>
+
+  <!-- Infrastructure -->
+  <rect x="338" y="806" width="864" height="126" rx="18" fill="#f4f7fb" stroke="#8091a9" stroke-width="1.8"/>
+  <text x="770" y="837" text-anchor="middle" class="region-title">本地基础设施与持久化</text>
+  <rect x="370" y="858" width="180" height="50" rx="9" fill="#ffffff" stroke="#b6c1cf"/>
+  <text x="460" y="880" text-anchor="middle" class="box-title">SQLite + WAL</text>
+  <text x="460" y="899" text-anchor="middle" class="small">计划 · 任务 · 尝试 · 事件</text>
+  <rect x="568" y="858" width="180" height="50" rx="9" fill="#ffffff" stroke="#b6c1cf"/>
+  <text x="658" y="880" text-anchor="middle" class="box-title">Run Storage</text>
+  <text x="658" y="899" text-anchor="middle" class="small">XML · 日志 · 结果文件</text>
+  <rect x="766" y="858" width="180" height="50" rx="9" fill="#ffffff" stroke="#b6c1cf"/>
+  <text x="856" y="880" text-anchor="middle" class="box-title">Windows 本机</text>
+  <text x="856" y="899" text-anchor="middle" class="small">127.0.0.1 · 原生进程</text>
+  <rect x="964" y="858" width="180" height="50" rx="9" fill="#ffffff" stroke="#b6c1cf"/>
+  <text x="1054" y="880" text-anchor="middle" class="box-title">PowerShell 运维</text>
+  <text x="1054" y="899" text-anchor="middle" class="small">start · stop · preflight</text>
+
+  <!-- Connections -->
+  <path d="M288 406 H330" class="flow-bi"/>
+  <text x="309" y="394" text-anchor="middle" class="small">HTTP / SSE</text>
+  <path d="M1202 240 H1242" class="flow-bi"/>
+  <path d="M1170 617 C1210 617 1215 395 1267 395" class="flow dash"/>
+  <text x="1213" y="495" text-anchor="middle" class="small" transform="rotate(-90 1213 495)">只读检查</text>
+  <path d="M1170 605 H1235 V550 H1267" class="flow"/>
+  <path d="M1406 596 V608" class="flow"/>
+  <path d="M770 770 V798" class="flow-bi"/>
+  <path d="M770 312 V326" class="flow-blue"/>
+  <path d="M770 484 V498" class="flow-blue"/>
+
+  <text x="50" y="956" class="small">第一版范围：PPPFLT 单机短链路；不包含 B2bOut、UPD 计算、账号权限和时序分析。</text>
+</svg>
