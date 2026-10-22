@@ -23,7 +23,9 @@ def main() -> int:
         stations = stations[:-1]
     for station in stations:
         (args.output_dir / f"{station}.flt").write_text(
-            "solution\n", encoding="utf-8"
+            "# Synthetic test positions; seconds-of-week X Y Z\n"
+            + "".join(f"{sow} 6378137 0 0\n" for sow in range(0, 661, 30)),
+            encoding="utf-8",
         )
     return 0
 

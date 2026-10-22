@@ -227,6 +227,16 @@ class TaskRepository:
     ) -> None:
         with self._session_factory.begin() as session:
             for item in files:
+                existing = session.scalar(
+                    select(ResultFileModel).where(
+                        ResultFileModel.task_id == str(task_id),
+                        ResultFileModel.attempt_id == str(attempt_id),
+                        ResultFileModel.path == str(getattr(item, "path")),
+                    )
+                )
+                if existing is not None:
+                    existing.size_bytes = getattr(item, "size_bytes")
+                    continue
                 session.add(
                     ResultFileModel(
                         id=str(uuid4()),

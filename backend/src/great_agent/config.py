@@ -51,6 +51,7 @@ class AppSettings(BaseModel):
     host: str = "127.0.0.1"
     port: int = Field(default=8765, ge=1, le=65535)
     max_concurrency: int = Field(default=2, ge=1, le=8)
+    convergence_hold_seconds: float = Field(default=600, ge=0, allow_inf_nan=False)
     model: ModelSettings
     pppflt: PppfltSettings
 

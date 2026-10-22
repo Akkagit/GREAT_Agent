@@ -5,6 +5,7 @@ database_path = 'F:\GREAT_Agent\data\great_agent.db'
 host = '127.0.0.1'
 port = 8765
 max_concurrency = 2
+convergence_hold_seconds = 600
 
 [model]
 base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'

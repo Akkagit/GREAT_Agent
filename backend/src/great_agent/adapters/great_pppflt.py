@@ -60,7 +60,12 @@ class GreatPppfltAdapter:
             set_text(root, "./gen/mode", spec.scenario.mode)
             set_text(root, "./gen/year", str(date.year))
             set_text(root, "./gen/doy", f"{date.doy:03d}")
-        set_text(root, "./inputs/rinexo", " ".join(map(str, paths["observation"])))
+        set_text(
+            root,
+            "./inputs/rinexo",
+            "\n            " + "\n            ".join(map(str, paths["observation"]))
+            + "\n        ",
+        )
         input_nodes = {
             "rinexn": ("rinexn",),
             "sp3": ("sp3",),
@@ -236,6 +241,8 @@ class GreatPppfltAdapter:
             ),
             "stations": tuple(require_node(root, "./gen/rec").text.split())
             == spec.stations,
+            "observations": require_node(root, "./inputs/rinexo").text.split()
+            == list(map(str, self._input_paths(spec, date)["observation"])),
             "frequency": require_node(root, "./process/frequency").text.strip()
             == ("3" if spec.scenario.frequency == "TF" else "2"),
             "ambiguity": require_node(root, "./ambiguity/fix_mode").text.strip()
@@ -269,7 +276,7 @@ class GreatPppfltAdapter:
         for alias in aliases:
             node = root.find(f"./inputs/{alias}")
             if node is not None:
-                node.text = f" {value} "
+                set_text(root, f"./inputs/{alias}", value)
                 return
         raise XmlValidationError(
             f"missing XML node: one of {', '.join(f'./inputs/{name}' for name in aliases)}"

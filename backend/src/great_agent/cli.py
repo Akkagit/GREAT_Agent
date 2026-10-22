@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+from uuid import UUID
 
 import psutil
 import uvicorn
@@ -26,6 +27,7 @@ from great_agent.runtime.worker import CommandFactory, Worker
 from great_agent.services.chat_service import ChatService
 from great_agent.services.plan_service import PlanService
 from great_agent.services.task_service import TaskService
+from great_agent.services.result_analysis_service import analyze_task
 
 
 def build_app(
@@ -54,6 +56,7 @@ def build_app(
         result_inspector=PppfltResultInspector(),
         max_concurrency=settings.max_concurrency,
         command_factory=command_factory,
+        convergence_hold_seconds=settings.convergence_hold_seconds,
     )
     chat_service = ChatService(
         plan_service=plan_service,
@@ -172,6 +175,32 @@ def _run_smoke(settings: AppSettings, plan_path: str) -> int:
     return 0 if tasks and all(task.status == "succeeded" for task in tasks) else 3
 
 
+def _analyze_existing(
+    settings: AppSettings, experiment_id: UUID,
+    *, reference_experiment_id: UUID | None = None, hold_seconds: float | None = None,
+) -> int:
+    app = build_app(settings)
+    services = app.state.services
+    services.plan_service.get_experiment(experiment_id)
+    tasks = services.task_repository.list_tasks(experiment_id)
+    reports = []
+    for task in tasks:
+        try:
+            if task.status != "succeeded":
+                raise ValueError("solver task has not succeeded")
+            artifacts = analyze_task(
+                task.id, repository=services.task_repository,
+                plan_service=services.plan_service, storage=services.run_storage,
+                reference_experiment_id=reference_experiment_id,
+                hold_seconds=settings.convergence_hold_seconds if hold_seconds is None else hold_seconds,
+            )
+            reports.append({"task_id": str(task.id), "ok": True, "artifacts": [str(item.path) for item in artifacts]})
+        except (ValueError, OSError, RuntimeError, ImportError) as error:
+            reports.append({"task_id": str(task.id), "ok": False, "error": str(error)})
+    print(json.dumps({"experiment_id": str(experiment_id), "tasks": reports}, ensure_ascii=False, indent=2))
+    return 0 if reports and all(item["ok"] for item in reports) else 4
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="great-agent")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -184,6 +213,11 @@ def main(argv: list[str] | None = None) -> int:
     smoke = subparsers.add_parser("smoke")
     smoke.add_argument("--config", required=True)
     smoke.add_argument("--plan", required=True)
+    analyze = subparsers.add_parser("analyze")
+    analyze.add_argument("--config", required=True)
+    analyze.add_argument("--experiment-id", type=UUID, required=True)
+    analyze.add_argument("--reference-experiment-id", type=UUID)
+    analyze.add_argument("--hold-seconds", type=float)
     args = parser.parse_args(argv)
     settings = _load_settings(args.config)
     if args.command == "api":
@@ -196,6 +230,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "preflight":
         return _preflight(settings, args.plan)
+    if args.command == "analyze":
+        return _analyze_existing(
+            settings, args.experiment_id, reference_experiment_id=args.reference_experiment_id,
+            hold_seconds=args.hold_seconds,
+        )
     return _run_smoke(settings, args.plan)
 
 

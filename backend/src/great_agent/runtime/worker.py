@@ -12,6 +12,7 @@ from great_agent.runtime.process_runner import ProcessRunner
 from great_agent.runtime.result_inspector import PppfltResultInspector
 from great_agent.runtime.run_storage import RunStorage
 from great_agent.services.plan_service import PlanService
+from great_agent.services.result_analysis_service import analyze_task
 
 
 CommandFactory = Callable[[RenderedTask, Path], tuple[str, ...]]
@@ -29,6 +30,7 @@ class Worker:
         result_inspector: PppfltResultInspector,
         max_concurrency: int,
         command_factory: CommandFactory | None = None,
+        convergence_hold_seconds: float = 600,
     ) -> None:
         self.repository = repository
         self.plan_service = plan_service
@@ -37,6 +39,7 @@ class Worker:
         self.process_runner = process_runner
         self.result_inspector = result_inspector
         self.max_concurrency = max_concurrency
+        self.convergence_hold_seconds = convergence_hold_seconds
         self._semaphore = asyncio.Semaphore(max_concurrency)
         self._command_factory = command_factory
 
@@ -144,6 +147,22 @@ class Worker:
             self.repository.add_result_files(
                 claim.task_id, claim.attempt_id, report.files
             )
+            scenario = revision.spec.scenario
+            if (scenario.mode, scenario.frequency, scenario.ambiguity) == ("static", "DF", "float"):
+                try:
+                    await asyncio.to_thread(
+                        analyze_task, claim.task_id, repository=self.repository,
+                        plan_service=self.plan_service, storage=self.run_storage,
+                        hold_seconds=self.convergence_hold_seconds,
+                    )
+                except (ValueError, OSError, RuntimeError, ImportError) as error:
+                    self.repository.publish_event(claim.task_id, "analysis_failed", {
+                        "attempt_id": str(claim.attempt_id), "message": str(error),
+                    })
+            else:
+                self.repository.publish_event(claim.task_id, "analysis_skipped", {
+                    "reason": "select a static DF-float reference experiment to analyze this scenario",
+                })
             self.repository.mark_attempt_succeeded(
                 claim.task_id, claim.attempt_id, exit_code=outcome.exit_code
             )

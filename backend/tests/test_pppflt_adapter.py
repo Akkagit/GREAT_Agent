@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -223,6 +224,53 @@ def test_native_great_template_aliases_render_df_float_safely(
     assert root.findtext("./outputs/flt").strip().endswith(
         "$(rec)-PPP_sta_DF_Float.flt"
     )
+
+
+def test_input_replacement_clears_old_paths_after_comments(
+    adapter: GreatPppfltAdapter, tmp_path: Path
+) -> None:
+    template = adapter.settings.template_path
+    text = template.read_text(encoding="utf-8")
+    root = ET.fromstring(text)
+    for name in ("rinexo", "clk"):
+        node = root.find(f"./inputs/{name}")
+        node.text = "\n"
+        comment = ET.SubElement(node, ET.Comment)
+        comment.text = " source file description "
+        comment.tail = " OLD_CAMPAIGN_PATH OLD_CAMPAIGN_PATH "
+    ET.ElementTree(root).write(template, encoding="utf-8")
+
+    rendered = adapter.render_task(
+        make_spec(), YearDoy(year=2025, doy=6), tmp_path / "task"
+    )
+    generated = rendered.xml_path.read_text(encoding="utf-8")
+    parsed = ET.fromstring(generated)
+    observations = parsed.findtext("./inputs/rinexo").split()
+    assert len(observations) == 15
+    assert len(set(observations)) == 15
+    assert "OLD_CAMPAIGN_PATH" not in generated
+    assert generated.count("source file description") == 2
+    assert len(parsed.findtext("./inputs/clk").split()) == 1
+    lines = [line.strip() for line in generated.splitlines()]
+    assert all(lines.count(path) == 1 for path in observations)
+
+
+def test_filter_attributes_are_written_one_per_line(
+    adapter: GreatPppfltAdapter, tmp_path: Path
+) -> None:
+    tree = ET.parse(adapter.settings.template_path)
+    tree.getroot().find("./filter").set("noise_clk", "1000")
+    tree.write(adapter.settings.template_path, encoding="utf-8")
+    rendered = adapter.render_task(
+        make_spec(reset_hours=4), YearDoy(year=2024, doy=350), tmp_path / "task"
+    )
+    generated = rendered.xml_path.read_text(encoding="utf-8")
+    block = re.search(r"<filter\b.*?/>", generated, flags=re.S).group()
+    lines = [line.strip() for line in block.splitlines()]
+    assert lines == ["<filter", 'reset_par="4"', 'noise_clk="1000"', "/>"]
+    assert ET.fromstring(generated).find("./filter").attrib == {
+        "reset_par": "4", "noise_clk": "1000"
+    }
 
 
 def test_strict_preflight_reports_exact_missing_station(

@@ -82,6 +82,16 @@ def test_mock_user_journey(mock_context) -> None:
     assert [(task["year"], task["doy"]) for task in tasks] == [(2024, 366), (2025, 1)]
     assert all(task["status"] == "succeeded" for task in tasks)
     assert all(len(task["results"]) == 15 for task in tasks)
+    detail = client.get(f"/api/v1/tasks/{tasks[0]['id']}").json()
+    artifacts = client.get(
+        f"/api/v1/tasks/{tasks[0]['id']}/attempts/{detail['active_attempt_id']}/results"
+    ).json()
+    plots = [item for item in artifacts if item["kind"] == "plot"]
+    assert len(plots) == 16
+    assert len([item for item in artifacts if item["kind"] == "analysis"]) == 1
+    png = client.get(plots[0]["url"])
+    assert png.status_code == 200
+    assert png.content.startswith(b"\x89PNG\r\n\x1a\n")
 
 
 def test_preflight_reports_missing_template_without_starting_solver(

@@ -314,6 +314,49 @@ async def test_worker_records_success_and_files(worker_factory) -> None:
     assert len(stored.result_files(kind="flt")) == 15
 
 
+async def test_worker_automatically_registers_analysis_and_station_plots(worker_factory) -> None:
+    import json
+
+    worker, task, _ = worker_factory("success")
+    worker.convergence_hold_seconds = 120
+    await worker.run_once()
+    stored = worker.repository.get_task(task.id)
+    assert len(stored.result_files(kind="plot")) == 16
+    assert len(stored.result_files(kind="analysis")) == 1
+    assert all(Path(item.path).is_file() for item in stored.result_files(kind="plot"))
+    report = json.loads(Path(stored.result_files(kind="analysis")[0].path).read_text())
+    assert report["policy"]["hold_seconds"] == 120
+    assert any(event.kind == "analysis_completed" for event in worker.repository.list_events(task.id))
+
+
+async def test_invalid_analysis_keeps_solver_success_and_publishes_reason(worker_factory) -> None:
+    worker, task, _ = worker_factory("success")
+    worker.convergence_hold_seconds = -1
+    await worker.run_once()
+    stored = worker.repository.get_task(task.id)
+    assert stored.status == "succeeded"
+    assert not stored.result_files(kind="analysis")
+    errors = [event for event in worker.repository.list_events(task.id) if event.kind == "analysis_failed"]
+    assert len(errors) == 1
+    assert "invalid convergence policy" in errors[0].payload["message"]
+
+
+def test_registering_analysis_twice_updates_same_artifact(repository_context, tmp_path: Path) -> None:
+    from great_agent.runtime.result_inspector import ResultFileInfo
+
+    session_factory, _ = repository_context
+    repository = TaskRepository(session_factory)
+    claim = repository.claim_next("worker-1")
+    path = tmp_path / "analysis.json"
+    first = ResultFileInfo(None, "analysis", path, 10)
+    second = ResultFileInfo(None, "analysis", path, 20)
+    repository.add_result_files(claim.task_id, claim.attempt_id, (first,))
+    repository.add_result_files(claim.task_id, claim.attempt_id, (second,))
+    results = repository.list_attempt_results(claim.task_id, claim.attempt_id)
+    assert len(results) == 1
+    assert results[0].size_bytes == 20
+
+
 async def test_worker_records_nonzero_exit(worker_factory) -> None:
     worker, task, _ = worker_factory("fail")
 

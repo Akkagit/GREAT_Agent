@@ -51,6 +51,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\real-smoke.ps1 -PreflightOnly
 
 只有人工检查冻结计划、XML 路径、参数数组、输入报告和输出目录后，才可显式运行 `-Execute`。不要把预检成功视为执行授权。
 
+## 位置分析和自动绘图
+
+静态 DF Float 日任务成功产生所有测站的 FLT 后，worker 自动生成位置分析与图表，并登记到该 attempt 的“结果文件”列表。产物在 `attempts/0001/analysis`，包含每站 ENU CSV、全天/首小时误差图，以及 `analysis.json`、`summary.csv`、`convergence.png`。分析失败时记录 `analysis_failed` 事件，保留解算状态与原始结果，便于单独重做后处理。
+
+2026-10-22 确认的临时口径：各站参考坐标取同一天静态双频浮点解的最后一个有效历元 ECEF 坐标；用 WGS84 椭球大地纬度转换 ENU。水平误差 `sqrt(E²+N²) <= 0.2 m`，垂直误差 `abs(U) <= 0.4 m`，连续同时满足 600 秒才算收敛。收敛时间记录该连续窗口的起点，起算时刻为计划中的 GPS 当日零点，缺失历元会重置窗口。未收敛用 JSON `null`、CSV 空值和图中的 `N/C` 表示。此参考只用于相对稳定性分析，不等同于外部真值精度。
+
+顶层配置 `convergence_hold_seconds = 600` 控制自动后处理的持续时长；重做已有结果时可用 `--hold-seconds` 覆盖。下面的命令只读取已有 FLT，不启动 GREAT：
+
+```powershell
+uv run great-agent analyze --config config/local.toml --experiment-id 476c79c3-5452-4967-afc7-0bafad975436 --hold-seconds 600
+```
+
+分析 TF 或固定解时，通过 `--reference-experiment-id <DF_FLOAT_EXPERIMENT_UUID>` 指向成功的静态 DF Float 实验，按日期和测站匹配同一份参考；尚未选择参考时，worker 记录 `analysis_skipped`。参考路径、文件 SHA256、参考历元及 XYZ 会写入 JSON，避免把不同方案各自的末历元误当成共同真值。重复后处理会更新同一路径的结果登记，不增加重复文件记录。
+
+XML 生成会清除输入节点注释后残留的旧路径，观测路径每站一行，`filter` 每个属性一行。已执行 attempt 中的 XML 保持原样；重新预检可在 `runs/preflight/2024_350/config.xml` 查看修正版。
+
 ## 数据安全和备份
 
 - `observation_root` 与 `product_root` 只被读取；适配器不修改或复制源数据。
