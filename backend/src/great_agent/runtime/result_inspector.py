@@ -35,7 +35,15 @@ class PppfltResultInspector:
                 key=lambda path: path.name.lower(),
             )
         ) if result_dir.is_dir() else ()
-        by_station = {path.stem.upper(): path for path in flt_files}
+        def station_for(path: Path) -> str:
+            stem = path.stem.upper()
+            for station in expected_stations:
+                normalized = station.upper()
+                if stem == normalized or stem.startswith(f"{normalized}-"):
+                    return normalized
+            return stem
+
+        by_station = {station_for(path): path for path in flt_files}
         missing = tuple(
             station
             for station in expected_stations
@@ -44,7 +52,7 @@ class PppfltResultInspector:
         )
         files = [
             ResultFileInfo(
-                station=path.stem.upper(),
+                station=station_for(path),
                 kind="flt",
                 path=path,
                 size_bytes=path.stat().st_size,

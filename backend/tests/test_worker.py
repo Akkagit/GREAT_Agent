@@ -182,6 +182,24 @@ def test_missing_station_check_is_case_insensitive(
     assert len(report.files) == 16
 
 
+def test_native_pppflt_filenames_are_mapped_to_station_codes(
+    result_inspector: PppfltResultInspector, attempt_dir: Path
+) -> None:
+    for station in DEFAULT_STATIONS:
+        (attempt_dir / "results" / f"{station}-PPP_sta_DF_Float.flt").write_text(
+            "solution", encoding="utf-8"
+        )
+
+    report = result_inspector.inspect(
+        attempt_dir, expected_stations=DEFAULT_STATIONS
+    )
+
+    assert report.ok is True
+    assert {item.station for item in report.files if item.kind == "flt"} == set(
+        DEFAULT_STATIONS
+    )
+
+
 def test_missing_station_check_rejects_empty_flt(
     result_inspector: PppfltResultInspector, attempt_dir: Path
 ) -> None:
