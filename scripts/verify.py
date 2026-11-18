@@ -178,6 +178,8 @@ def verify(root, report_path=None, *, python=None, npm=None, timeout_seconds=900
         # TMPDIR can be customized: never trust it to point away from live assets.
         if output.is_relative_to((root / 'frontend').resolve()):
             raise ValueError('temporary build output must be outside frontend')
+        # Pytest creates --basetemp itself, but its parent must exist on a clean checkout.
+        (root / '.tmp').mkdir(exist_ok=True)
         steps = _steps(root, python, npm, output)
         report = {
             'schema_version': 1, 'status': 'running', 'exit_code': None,

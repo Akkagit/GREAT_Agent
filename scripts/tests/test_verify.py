@@ -92,6 +92,30 @@ def test_success_runs_all_checks_and_builds_only_in_unique_temp_directory(tmp_pa
     assert second[second.index('--outDir') + 1] != str(output)
 
 
+@pytest.mark.parametrize('scratch_exists', [False, True], ids=['clean', 'existing'])
+def test_python_gate_can_create_tmp_path_in_a_clean_checkout(tmp_path, scratch_exists):
+    app = verifier()
+    root, report_path = project(tmp_path)
+    if scratch_exists:
+        (root / '.tmp').mkdir()
+    tests = root / 'backend' / 'tests'
+    tests.mkdir(parents=True)
+    (root / 'scripts' / 'tests').mkdir(parents=True)
+    (tests / 'test_fixture.py').write_text(
+        'def test_tmp_path(tmp_path):\n    assert tmp_path.is_dir()\n', encoding='utf-8',
+    )
+
+    def run(command, **kwargs):
+        if '--pytest-offline' in command:
+            return app.run_command(command, **kwargs)
+        build_if_requested(command)
+        return SimpleNamespace(returncode=0)
+
+    assert app.verify(root, report_path, run=run) == 0
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    assert '1 passed' in Path(report['steps'][0]['log']).read_text(encoding='utf-8')
+
+
 def test_report_fingerprints_working_sources_locks_and_isolated_build(tmp_path):
     import hashlib
     app = verifier()
