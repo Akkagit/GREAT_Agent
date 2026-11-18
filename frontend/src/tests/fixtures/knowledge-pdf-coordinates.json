@@ -1,0 +1,1282 @@
+[
+  {
+    "name": "rotate-0-unit-1",
+    "rotation": 0,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.704,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      0,
+      100
+    ],
+    "expected": {
+      "left": 30,
+      "top": 37.863,
+      "width": 151.05599999999998,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-90-unit-1",
+    "rotation": 90,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expected": {
+      "left": 103.137,
+      "top": 30,
+      "width": 9,
+      "height": 151.05599999999998
+    }
+  },
+  {
+    "name": "rotate-180-unit-1",
+    "rotation": 180,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      200,
+      0
+    ],
+    "expected": {
+      "left": 118.94400000000002,
+      "top": 103.137,
+      "width": 151.05599999999998,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-270-unit-1",
+    "rotation": 270,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242,
+      79.296,
+      31.242,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      200,
+      100
+    ],
+    "expected": {
+      "left": 37.863,
+      "top": 118.94400000000002,
+      "width": 9,
+      "height": 151.05599999999998
+    }
+  },
+  {
+    "name": "rotate-0-cropped-unit-1",
+    "rotation": 0,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.704,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      0,
+      100
+    ],
+    "expected": {
+      "left": 15,
+      "top": 22.863,
+      "width": 151.05599999999998,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-90-cropped-unit-1",
+    "rotation": 90,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expected": {
+      "left": 88.137,
+      "top": 15,
+      "width": 9,
+      "height": 151.05599999999998
+    }
+  },
+  {
+    "name": "rotate-180-cropped-unit-1",
+    "rotation": 180,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      200,
+      0
+    ],
+    "expected": {
+      "left": 103.94400000000002,
+      "top": 88.137,
+      "width": 151.05599999999998,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-270-cropped-unit-1",
+    "rotation": 270,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242,
+      79.296,
+      31.242,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      200,
+      100
+    ],
+    "expected": {
+      "left": 22.863,
+      "top": 103.94400000000002,
+      "width": 9,
+      "height": 151.05599999999998
+    }
+  },
+  {
+    "name": "rotate-0-shifted-unit-1",
+    "rotation": 0,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.70400000000001,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      30,
+      140
+    ],
+    "expected": {
+      "left": 30,
+      "top": 37.863,
+      "width": 151.056,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-90-shifted-unit-1",
+    "rotation": 90,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      30,
+      40
+    ],
+    "expected": {
+      "left": 103.137,
+      "top": 30,
+      "width": 9,
+      "height": 151.056
+    }
+  },
+  {
+    "name": "rotate-180-shifted-unit-1",
+    "rotation": 180,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      230,
+      40
+    ],
+    "expected": {
+      "left": 118.94399999999999,
+      "top": 103.137,
+      "width": 151.056,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-270-shifted-unit-1",
+    "rotation": 270,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242000000000004,
+      79.296,
+      31.242000000000004,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      230,
+      140
+    ],
+    "expected": {
+      "left": 37.863,
+      "top": 118.94399999999999,
+      "width": 9,
+      "height": 151.056
+    }
+  },
+  {
+    "name": "rotate-0-cropped-shifted-unit-1",
+    "rotation": 0,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.70400000000001,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      30,
+      140
+    ],
+    "expected": {
+      "left": 15,
+      "top": 22.863,
+      "width": 151.056,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-90-cropped-shifted-unit-1",
+    "rotation": 90,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      30,
+      40
+    ],
+    "expected": {
+      "left": 88.137,
+      "top": 15,
+      "width": 9,
+      "height": 151.056
+    }
+  },
+  {
+    "name": "rotate-180-cropped-shifted-unit-1",
+    "rotation": 180,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 1,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      230,
+      40
+    ],
+    "expected": {
+      "left": 103.94399999999999,
+      "top": 88.137,
+      "width": 151.056,
+      "height": 9
+    }
+  },
+  {
+    "name": "rotate-270-cropped-shifted-unit-1",
+    "rotation": 270,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 1,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242000000000004,
+      79.296,
+      31.242000000000004,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      230,
+      140
+    ],
+    "expected": {
+      "left": 22.863,
+      "top": 103.94399999999999,
+      "width": 9,
+      "height": 151.056
+    }
+  },
+  {
+    "name": "rotate-0-unit-2",
+    "rotation": 0,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.704,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      0,
+      100
+    ],
+    "expected": {
+      "left": 60,
+      "top": 75.726,
+      "width": 302.11199999999997,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-90-unit-2",
+    "rotation": 90,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expected": {
+      "left": 206.274,
+      "top": 60,
+      "width": 18,
+      "height": 302.11199999999997
+    }
+  },
+  {
+    "name": "rotate-180-unit-2",
+    "rotation": 180,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      200,
+      0
+    ],
+    "expected": {
+      "left": 237.88800000000003,
+      "top": 206.274,
+      "width": 302.11199999999997,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-270-unit-2",
+    "rotation": 270,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242,
+      79.296,
+      31.242,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      200,
+      100
+    ],
+    "expected": {
+      "left": 75.726,
+      "top": 237.88800000000003,
+      "width": 18,
+      "height": 302.11199999999997
+    }
+  },
+  {
+    "name": "rotate-0-cropped-unit-2",
+    "rotation": 0,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.704,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      0,
+      100
+    ],
+    "expected": {
+      "left": 30,
+      "top": 45.726,
+      "width": 302.11199999999997,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-90-cropped-unit-2",
+    "rotation": 90,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    "expected": {
+      "left": 176.274,
+      "top": 30,
+      "width": 18,
+      "height": 302.11199999999997
+    }
+  },
+  {
+    "name": "rotate-180-cropped-unit-2",
+    "rotation": 180,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      200,
+      0
+    ],
+    "expected": {
+      "left": 207.88800000000003,
+      "top": 176.274,
+      "width": 302.11199999999997,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-270-cropped-unit-2",
+    "rotation": 270,
+    "media_box": [
+      0,
+      0,
+      200,
+      100
+    ],
+    "cropbox": [
+      10,
+      10,
+      190,
+      90
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242,
+      79.296,
+      31.242,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      200,
+      100
+    ],
+    "expected": {
+      "left": 45.726,
+      "top": 207.88800000000003,
+      "width": 18,
+      "height": 302.11199999999997
+    }
+  },
+  {
+    "name": "rotate-0-shifted-unit-2",
+    "rotation": 0,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.70400000000001,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      30,
+      140
+    ],
+    "expected": {
+      "left": 60,
+      "top": 75.726,
+      "width": 302.112,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-90-shifted-unit-2",
+    "rotation": 90,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      30,
+      40
+    ],
+    "expected": {
+      "left": 206.274,
+      "top": 60,
+      "width": 18,
+      "height": 302.112
+    }
+  },
+  {
+    "name": "rotate-180-shifted-unit-2",
+    "rotation": 180,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      230,
+      40
+    ],
+    "expected": {
+      "left": 237.88799999999998,
+      "top": 206.274,
+      "width": 302.112,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-270-shifted-unit-2",
+    "rotation": 270,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242000000000004,
+      79.296,
+      31.242000000000004,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      230,
+      140
+    ],
+    "expected": {
+      "left": 75.726,
+      "top": 237.88799999999998,
+      "width": 18,
+      "height": 302.112
+    }
+  },
+  {
+    "name": "rotate-0-cropped-shifted-unit-2",
+    "rotation": 0,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      20,
+      25.242000000000004,
+      120.70400000000001,
+      31.242000000000004
+    ],
+    "to_pdf_transform": [
+      1,
+      0,
+      0,
+      -1,
+      30,
+      140
+    ],
+    "expected": {
+      "left": 30,
+      "top": 45.726,
+      "width": 302.112,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-90-cropped-shifted-unit-2",
+    "rotation": 90,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      68.758,
+      20,
+      74.758,
+      120.704
+    ],
+    "to_pdf_transform": [
+      0,
+      1,
+      1,
+      0,
+      30,
+      40
+    ],
+    "expected": {
+      "left": 176.274,
+      "top": 30,
+      "width": 18,
+      "height": 302.112
+    }
+  },
+  {
+    "name": "rotate-180-cropped-shifted-unit-2",
+    "rotation": 180,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 2,
+    "page_width": 200,
+    "page_height": 100,
+    "scale": 1.5,
+    "bbox": [
+      79.296,
+      68.758,
+      180,
+      74.758
+    ],
+    "to_pdf_transform": [
+      -1,
+      0,
+      0,
+      1,
+      230,
+      40
+    ],
+    "expected": {
+      "left": 207.88799999999998,
+      "top": 176.274,
+      "width": 302.112,
+      "height": 18
+    }
+  },
+  {
+    "name": "rotate-270-cropped-shifted-unit-2",
+    "rotation": 270,
+    "media_box": [
+      30,
+      40,
+      230,
+      140
+    ],
+    "cropbox": [
+      40,
+      50,
+      220,
+      130
+    ],
+    "user_unit": 2,
+    "page_width": 100,
+    "page_height": 200,
+    "scale": 1.5,
+    "bbox": [
+      25.242000000000004,
+      79.296,
+      31.242000000000004,
+      180
+    ],
+    "to_pdf_transform": [
+      0,
+      -1,
+      -1,
+      0,
+      230,
+      140
+    ],
+    "expected": {
+      "left": 45.726,
+      "top": 207.88799999999998,
+      "width": 18,
+      "height": 302.112
+    }
+  }
+]

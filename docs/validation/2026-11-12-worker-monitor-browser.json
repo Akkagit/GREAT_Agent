@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "name": "100-tasks-visible",
+      "pass": true
+    },
+    {
+      "name": "one-experiment-stream-zero-task-streams",
+      "pass": true
+    },
+    {
+      "name": "two-tabs-two-streams",
+      "pass": true
+    },
+    {
+      "name": "ordinary-api-remains-responsive",
+      "pass": true
+    },
+    {
+      "name": "status-update-without-reload",
+      "pass": true
+    },
+    {
+      "name": "terminal-analysis-refreshes-open-image-view",
+      "pass": true
+    },
+    {
+      "name": "tab-switch-does-not-open-extra-stream",
+      "pass": true
+    },
+    {
+      "name": "unmount-closes-stream",
+      "pass": true
+    },
+    {
+      "name": "no-browser-runtime-errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "queryMs": 119.29950000000827,
+  "stats": {
+    "active_streams": 2,
+    "max_streams": 2,
+    "opened_streams": 2,
+    "task_streams": 0
+  },
+  "taskCount": 100,
+  "stats_phase": "before-second-workspace-unmount"
+}

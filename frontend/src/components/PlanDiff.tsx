@@ -1,4 +1,5 @@
 import type { FieldDiff, Proposal } from '../api/types'
+import { MarkdownContent } from './MarkdownContent'
 
 interface PlanDiffProps {
   proposal: Proposal | null
@@ -26,7 +27,7 @@ export function PlanDiff({ proposal, busy, onAccept, onReject }: PlanDiffProps) 
         </div>
       ) : (
         <div className="diff-content">
-          {proposal.explanation && <p className="proposal-note">{proposal.explanation}</p>}
+          {proposal.explanation && <MarkdownContent className="proposal-note">{proposal.explanation}</MarkdownContent>}
           <div className="diff-list">
             {proposal.diff.map((diff) => (
               <article className="diff-item" key={diff.path}>

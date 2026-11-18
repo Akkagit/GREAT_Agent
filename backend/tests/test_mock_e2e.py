@@ -67,8 +67,10 @@ def test_mock_user_journey(mock_context) -> None:
     experiment_id = experiment["id"]
 
     assert client.post(f"/api/v1/experiments/{experiment_id}/validate").json()["ok"] is True
-    client.post(f"/api/v1/experiments/{experiment_id}/freeze").raise_for_status()
-    run = client.post(f"/api/v1/experiments/{experiment_id}/run")
+    preview = client.post(f"/api/v1/experiments/{experiment_id}/execution-preview", json={"expected_revision": 1})
+    preview.raise_for_status()
+    assert not app.state.services.task_repository.list_tasks(__import__('uuid').UUID(experiment_id))
+    run = client.post(f"/api/v1/experiments/{experiment_id}/run", json={"preview_id": preview.json()["id"], "expected_revision": 1, "confirmed": True})
     run.raise_for_status()
     assert run.json()["count"] == 2
 
@@ -87,7 +89,8 @@ def test_mock_user_journey(mock_context) -> None:
         f"/api/v1/tasks/{tasks[0]['id']}/attempts/{detail['active_attempt_id']}/results"
     ).json()
     plots = [item for item in artifacts if item["kind"] == "plot"]
-    assert len(plots) == 16
+    assert len(plots) == 3
+    assert {item['plot_type'] for item in plots} == {'enu', 'convergence', 'fix_rate'}
     assert len([item for item in artifacts if item["kind"] == "analysis"]) == 1
     png = client.get(plots[0]["url"])
     assert png.status_code == 200
@@ -115,3 +118,14 @@ def test_preflight_reports_missing_template_without_starting_solver(
     assert report["ok"] is False
     assert any(item["kind"] == "template" for item in report["items"])
     assert report["tasks"][0]["xml_path"] is None
+
+
+def test_legacy_smoke_refuses_execution_without_creating_experiments(mock_context, tmp_path, capsys):
+    from great_agent.cli import _run_smoke
+    app, _ = mock_context
+    before = app.state.services.plan_service.list_experiments()
+    # No need even to open a plan file: old automatic execution is retired.
+    result = _run_smoke(app.state.settings, str(tmp_path / 'not-opened.json'))
+    assert result == 2
+    assert 'execution_confirmation_required' in capsys.readouterr().out
+    assert app.state.services.plan_service.list_experiments() == before

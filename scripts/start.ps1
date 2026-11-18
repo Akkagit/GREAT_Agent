@@ -1,25 +1,33 @@
+param(
+    [string]$Config = 'config\local.toml',
+    [switch]$NoBrowser,
+    [switch]$NoBuild,
+    [switch]$ApiOnly,
+    [ValidateRange(5, 600)][int]$HealthTimeoutSeconds = 60
+)
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$configPath = Join-Path $projectRoot 'config\local.toml'
-$frontendDist = Join-Path $projectRoot 'frontend\dist'
-$pidRoot = Join-Path $projectRoot 'data\pids'
-if (-not (Test-Path -LiteralPath $configPath)) {
-    throw "Missing $configPath. Copy config\app.example.toml first."
+$python = Join-Path $projectRoot '.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $python)) {
+    throw "Missing $python. Install dependencies explicitly before starting."
 }
-if (-not (Test-Path -LiteralPath $frontendDist)) {
-    & npm --prefix (Join-Path $projectRoot 'frontend') run build
-    if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed.' }
+# Keep an explicit process value; otherwise inherit the user's saved key.
+# Child API/Worker processes receive the value without writing it to disk.
+if (-not $env:GREAT_AGENT_MODEL_API_KEY) {
+    $env:GREAT_AGENT_MODEL_API_KEY = [Environment]::GetEnvironmentVariable('GREAT_AGENT_MODEL_API_KEY', 'User')
 }
-Push-Location $projectRoot
-try { & uv sync; if ($LASTEXITCODE -ne 0) { throw 'uv sync failed.' } }
+if (-not $env:GREAT_AGENT_RESEARCH_MODEL_API_KEY) {
+    $env:GREAT_AGENT_RESEARCH_MODEL_API_KEY = [Environment]::GetEnvironmentVariable('GREAT_AGENT_RESEARCH_MODEL_API_KEY', 'User')
+}
+$arguments = @((Join-Path $PSScriptRoot 'local_startup.py'), '--config', $Config,
+    '--health-timeout', $HealthTimeoutSeconds)
+if ($NoBrowser) { $arguments += '--no-browser' }
+if ($NoBuild) { $arguments += '--no-build' }
+if ($ApiOnly) { $arguments += '--api-only' }
+# A normal launch never installs or downloads dependencies.
+Push-Location -LiteralPath $projectRoot
+try {
+    & $python @arguments
+    if ($LASTEXITCODE -ne 0) { throw "Startup failed (exit $LASTEXITCODE); see the reported release logs." }
+}
 finally { Pop-Location }
-New-Item -ItemType Directory -Force -Path $pidRoot | Out-Null
-$launcher = Join-Path $projectRoot '.venv\Scripts\great-agent.exe'
-if (-not (Test-Path -LiteralPath $launcher)) { throw "Missing launcher: $launcher" }
-
-$api = Start-Process -FilePath $launcher -ArgumentList @('api', '--config', $configPath) -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru
-$worker = Start-Process -FilePath $launcher -ArgumentList @('worker', '--config', $configPath) -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru
-Set-Content -LiteralPath (Join-Path $pidRoot 'api.pid') -Value $api.Id -Encoding ascii
-Set-Content -LiteralPath (Join-Path $pidRoot 'worker.pid') -Value $worker.Id -Encoding ascii
-Start-Process 'http://127.0.0.1:8765/'
-Write-Host "GREAT Agent started. API PID=$($api.Id), worker PID=$($worker.Id)"

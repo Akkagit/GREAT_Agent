@@ -1,0 +1,91 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "global-consult-without-experiment",
+      "pass": true
+    },
+    {
+      "name": "global-consult-no-proposal",
+      "pass": true
+    },
+    {
+      "name": "global-history-restored",
+      "pass": true
+    },
+    {
+      "name": "mixed-answer-and-proposal",
+      "pass": true
+    },
+    {
+      "name": "consult-preserves-pending",
+      "pass": true
+    },
+    {
+      "name": "consult-preserves-revision",
+      "pass": true
+    },
+    {
+      "name": "consult-does-not-preflight",
+      "pass": true
+    },
+    {
+      "name": "mixed-history-single-card",
+      "pass": true
+    },
+    {
+      "name": "accept-auto-check-once",
+      "pass": true
+    },
+    {
+      "name": "accept-does-not-prepare",
+      "pass": true
+    },
+    {
+      "name": "mobile-inline-review-visible",
+      "pass": true
+    },
+    {
+      "name": "execute-remains-unconfirmed",
+      "pass": true
+    },
+    {
+      "name": "zero-automatic-execution",
+      "pass": true
+    },
+    {
+      "name": "frozen-consult-composer-enabled",
+      "pass": true
+    },
+    {
+      "name": "frozen-consult-no-new-proposal",
+      "pass": true
+    },
+    {
+      "name": "new-conversation-endpoint-only",
+      "pass": true
+    },
+    {
+      "name": "mobile-no-page-overflow",
+      "pass": true
+    },
+    {
+      "name": "cancelled-user-row-not-duplicated",
+      "pass": true
+    },
+    {
+      "name": "recovered-explanation-upgraded",
+      "pass": true
+    },
+    {
+      "name": "cancelled-delivery-no-execution",
+      "pass": true
+    },
+    {
+      "name": "no-browser-exceptions",
+      "pass": true
+    }
+  ],
+  "exceptions": [],
+  "scope": "Built frontend with isolated synthetic API only; no production DB/model/solver"
+}

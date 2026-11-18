@@ -7,11 +7,30 @@ port = 8765
 max_concurrency = 2
 convergence_hold_seconds = 600
 
+[knowledge]
+enabled = true
+chat_enabled = true
+root = 'F:\GREAT_Agent\data\knowledge'
+max_upload_bytes = 52428800
+max_pages = 300
+parser_timeout_seconds = 300
+# Semantic search is local and opt-in. Provision/verify pinned ONNX resources first.
+embedding_enabled = false
+embedding_min_available_mb = 384
+# embedding_model_path = 'F:\GREAT_Agent\local\models\multilingual-e5-small\6a0d452a575215f80b8f66276dd4ee5d504942c6\onnx\model_qint8_avx512_vnni.onnx'
+# embedding_tokenizer_path = 'F:\GREAT_Agent\local\models\multilingual-e5-small\6a0d452a575215f80b8f66276dd4ee5d504942c6\onnx\tokenizer.json'
+# Optional Docling adapter requires separately installed dependencies and predownloaded local models.
+# docling_artifacts = 'F:\GREAT_Agent\local\docling-models'
+
 [model]
-base_url = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
-name = 'qwen-plus'
+base_url = 'https://open.bigmodel.cn/api/paas/v4'
+name = 'glm-4.7'
+response_format = 'json_object'
+thinking = 'disabled'
+max_tokens = 2048
 connect_timeout_seconds = 10
 read_timeout_seconds = 120
+request_timeout_seconds = 180
 
 [pppflt]
 executable = 'F:\GREAT_Agent\local\GREAT_PVT.exe'
@@ -30,3 +49,21 @@ antenna_template = 'models\igs20.atx'
 tide_template = 'models\oceanload.blq'
 erp_template = 'models\finals.erp'
 planetary_template = 'models\de430.bsp'
+
+[research]
+enabled = true
+poll_interval_seconds = 0.5
+# Without an override, research inherits the main endpoint/key and has its own reasoning/output budgets.
+# Registered code roots are read-only. Files must be selected explicitly in the UI.
+[research.code_roots]
+project = 'F:\GREAT_Agent'
+# great_pvt = 'F:\GREAT_PVT'
+
+# Optional independent research provider. Credentials only come from
+# GREAT_AGENT_RESEARCH_MODEL_API_KEY (falling back to GREAT_AGENT_MODEL_API_KEY).
+# [research.model]
+# base_url = 'https://open.bigmodel.cn/api/paas/v4'
+# name = 'glm-4.7'
+# thinking = 'enabled'
+# max_tokens = 8192
+# request_timeout_seconds = 480

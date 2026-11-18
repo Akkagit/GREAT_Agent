@@ -1,0 +1,49 @@
+/* Keep workspace geometry independent of the component library. */
+.workspace-tabs.ant-tabs{flex:1;min-height:0;min-width:0;overflow:hidden}
+.workspace-tabs.ant-tabs>.ant-tabs-nav{flex-shrink:0;padding:0 22px;margin:0}
+.workspace-tabs.ant-tabs>.ant-tabs-body-holder{display:flex;flex-direction:column;overflow:hidden}
+.workspace-tabs.ant-tabs .ant-tabs-tab{font-size:12px}
+.workspace-tabs.ant-tabs .ant-tabs-tabpane{min-width:0}
+.application-brand.ant-btn{height:auto;border:0;box-shadow:none;gap:11px;padding:0;justify-content:flex-start;background:transparent}
+.sidebar-experiment.ant-btn{height:auto;white-space:normal;box-shadow:none;display:block;line-height:1.7}
+.sidebar-experiment.ant-btn>span:not(.ant-tag){font-size:10px;color:var(--muted);line-height:1.9}
+.sidebar-experiment .ant-tag{font-size:9px;margin:0}
+.history-header .ant-btn{flex-shrink:0}
+.inline-proposal-card .ant-select,.inline-proposal-card .ant-input-number{width:100%;min-width:0}
+.inline-proposal-card .ant-input-number-input{font-size:11px}
+.inline-proposal-card>header .ant-tag{margin:0;font-size:10px}
+.inline-proposal-card>footer .ant-btn{font-size:11px}
+.inline-proposal-card>footer .ant-btn-primary{flex:1}
+.inline-proposal-card .ant-alert{margin:0 13px 12px}
+.summary-sheet .ant-descriptions-view{border:0;border-radius:0}
+.summary-sheet .ant-descriptions-item-content{overflow-wrap:anywhere}
+.summary-stations .ant-tag{margin:0;font-family:Consolas,monospace}
+.summary-profiles .ant-descriptions-item-content{overflow-wrap:anywhere;font-size:11px}
+.composer .ant-input{min-height:78px;resize:vertical}
+.composer .ant-btn{margin-top:8px;width:100%}
+.workbench-tools .ant-btn{font-size:10px}
+.workflow-steps{padding:16px;margin:20px 0;border:1px solid var(--line);border-radius:6px;background:white;overflow:auto}
+.workflow-steps .ant-steps{min-width:650px}
+.execution-facts.ant-descriptions{margin:0 0 18px;padding-bottom:19px;border-bottom:1px solid var(--line)}
+.execution-inputs .ant-table-cell,.results-block .ant-table-cell{overflow-wrap:anywhere;word-break:break-word;vertical-align:top}
+.execution-inputs small{display:block;color:var(--muted);margin-top:4px}
+.execution-inputs .ant-tag{margin:0;white-space:normal}
+.execution-xml-toolbar .ant-select{width:245px;max-width:100%;min-width:0}
+.execution-xml-toolbar label{min-width:0;flex-wrap:wrap}
+.execution-confirm .ant-checkbox-wrapper{align-items:flex-start;font-size:12px;line-height:1.8}
+.execution-confirm .ant-checkbox{margin-top:3px}
+.task-main.ant-btn{height:auto;min-height:58px;justify-content:space-between;border-radius:0;white-space:normal}
+.task-main .ant-tag{margin:0}
+.retry-button.ant-btn{align-self:center;margin-right:12px;color:var(--amber)}
+.task-filters .ant-input{width:120px;max-width:100%}
+.task-filters .ant-select{width:105px}
+.task-detail>header .ant-select{min-width:140px;max-width:100%}
+.attempt-error.ant-alert{margin:16px}
+.run-notice.ant-alert{max-width:1380px;margin:12px auto 0}
+.artifact-selectors label{min-width:180px;max-width:100%;flex:1}
+.artifact-selectors .ant-select,.artifact-file-label .ant-select{width:100%;min-width:0}
+.artifact-file-label .ant-select-selection-item{overflow:hidden;text-overflow:ellipsis}
+.error-banner.ant-alert{max-width:none}
+.review-page>.ant-alert{margin-bottom:16px}
+@media(max-width:880px){.workspace-tabs.ant-tabs>.ant-tabs-nav{padding:0 16px}.workbench-mobile-nav .ant-btn{font-size:11px}.application-brand.ant-btn{gap:8px}}
+@container(max-width:540px){.task-filters{flex-wrap:wrap}.execution-xml-toolbar .ant-select{width:100%}.execution-confirm .ant-checkbox-wrapper{font-size:11px}}

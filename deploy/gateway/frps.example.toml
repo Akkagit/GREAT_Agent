@@ -1,0 +1,30 @@
+# Copy to /etc/frp/frps.toml; use matching, reviewed frps/frpc releases.
+# Schema checked against the official frp v0.72.0 configuration sources:
+# https://github.com/fatedier/frp/blob/v0.72.0/conf/frps_full_example.toml
+# Token contents never belong here. Provision one shared random 64-hex token in
+# /etc/frp/frps.token (root:frp, 0640), matching the Windows frpc.token.
+# Missing/unreadable token files cause frp resolution errors; frp itself does NOT
+# reject blank contents. The systemd pre-start check and operator checks matter.
+bindAddr = '0.0.0.0'
+bindPort = 7000
+
+# The application forwarding listener must not be reachable outside this host.
+proxyBindAddr = '127.0.0.1'
+allowPorts = [{ single = 18765 }]
+maxPortsPerClient = 1
+detailedErrorsToClient = false
+
+auth.method = 'token'
+auth.additionalScopes = ['HeartBeats', 'NewWorkConns']
+auth.tokenSource.type = 'file'
+auth.tokenSource.file.path = '/etc/frp/frps.token'
+
+# Certificate SAN must contain relay.example.com; keep its CA private key offline.
+transport.tls.force = true
+transport.tls.certFile = '/etc/frp/tls/relay.crt'
+transport.tls.keyFile = '/etc/frp/tls/relay.key'
+
+# systemd owns process/log lifecycle. No dashboard, UDP or vhost listener enabled.
+log.to = 'console'
+log.level = 'info'
+log.disablePrintColor = true

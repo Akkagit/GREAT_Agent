@@ -1,0 +1,606 @@
+{
+  "date": "2026-11-02",
+  "scope": "Current branch source and isolated P0 evidence, not deployment status",
+  "statuses": {
+    "A": {
+      "stroke": "#2563b9",
+      "fill": "#f1f6ff",
+      "text": "#1f5595",
+      "name": "已实现 · 当前主路径"
+    },
+    "B": {
+      "stroke": "#b47716",
+      "fill": "#fff8e9",
+      "text": "#8a590d",
+      "name": "已实现 / 验证 · 未接入"
+    },
+    "C": {
+      "stroke": "#8290a6",
+      "fill": "#f7f8fb",
+      "text": "#5d6b81",
+      "name": "待实现 · 目标架构"
+    }
+  },
+  "nodes": [
+    {
+      "id": "A01",
+      "status": "A",
+      "title": "React / Ant Design 工作台",
+      "phase": "本轮已替换",
+      "lines": [
+        "React 19 / antd 6.6.8 / TS / Vite",
+        "ConfigProvider / 中文 / tokens / 控件"
+      ],
+      "detail": "antd 6.6.8 已进入正式依赖与主路径：计划编辑、提案、聊天、执行复核、监控和历史产物控件采用 antd；中文 locale 与统一 tokens。保留自有分栏的键盘/尺寸持久化语义和 XML 精确纯文本着色。",
+      "sources": [
+        {
+          "path": "frontend/package.json",
+          "line": 14
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "line": 1
+        },
+        {
+          "path": "frontend/src/theme.ts",
+          "line": 1
+        },
+        {
+          "path": "frontend/src/pages/ExperimentWorkspace.tsx",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A02",
+      "status": "A",
+      "title": "提案交互与状态恢复",
+      "phase": "P1 已接入",
+      "lines": [
+        "服务端 UUID / 基线版本 / diff",
+        "pending 恢复 / 迟到结果隔离"
+      ],
+      "detail": "服务端 pending 状态独立于本地草稿；未知、加载、失败均关闭执行前检查入口。接受/拒绝由显式 API 完成。本轮未保存完整聊天记录。",
+      "sources": [
+        {
+          "path": "frontend/src/pages/ExperimentWorkspace.tsx",
+          "line": 1
+        },
+        {
+          "path": "frontend/src/api/client.ts",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A03",
+      "status": "A",
+      "title": "HTTP / 任务事件客户端",
+      "phase": "既有主路径",
+      "lines": [
+        "REST + 每任务 SSE / Last-Event-ID",
+        "日志与产物轮询 / 本地聊天草稿"
+      ],
+      "detail": "当前 SSE 只属于任务监控；事件按序回放，前端主要以 task_status 更新状态。模型回复等待完整候选，不是 token 流式聊天。",
+      "sources": [
+        {
+          "path": "frontend/src/pages/RunDashboard.tsx",
+          "line": 29
+        },
+        {
+          "path": "frontend/src/api/client.ts",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "B02",
+      "status": "B",
+      "title": "Ant Design X（可选）",
+      "phase": "可选 · 未接入",
+      "lines": [
+        "Bubble / Sender 静态 fixture 已验证",
+        "当前聊天使用 antd；X 仍未启用"
+      ],
+      "detail": "已验证的 antd 核心组件已接入 A01。可选 X 仅完成静态 fixture 验证，未加入产品依赖。自有分栏保留键盘语义，Splitter 的进一步适配仍需独立验收；本轮不为引入组件而使用内部 DOM 补丁。",
+      "sources": [
+        {
+          "path": "scripts/compatibility/node/package.json",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-validated-cutover.md",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A04",
+      "status": "A",
+      "title": "REST 领域命令 / 查询 + 持久任务事件 SSE",
+      "phase": "已接入主路径",
+      "lines": [
+        "计划 / 修订 / 提案 / 预检 / 执行预览 / 确认 / 任务启停 / 产物读取",
+        "聊天 HTTP 断连取消  ·  409 版本与状态冲突  ·  422 输入错误  ·  task sequence 回放"
+      ],
+      "detail": "FastAPI 公开业务 API，执行动作由显式用户确认触发。任务事件来自数据库，支持 Last-Event-ID；完整 AgentRun API、AgentEvent 转换和聚合流尚待实现。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/app.py",
+          "line": 27
+        },
+        {
+          "path": "backend/src/great_agent/api/experiments.py",
+          "line": 78
+        },
+        {
+          "path": "backend/src/great_agent/api/chat.py",
+          "line": 34
+        },
+        {
+          "path": "backend/src/great_agent/api/events.py",
+          "line": 17
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "C02",
+      "status": "C",
+      "title": "ProductEvent 协议与流适配",
+      "phase": "P2 / P3 待实现",
+      "lines": [
+        "AgentEvent → ProductEvent → SSE",
+        "文本 / 工具 / run 事件 · 聚合 / 恢复 / 退避"
+      ],
+      "detail": "把框架事件适配为稳定产品合同，定义 run 生命周期、取消、游标、重连退避、runtime schema 校验；不把 AgentScope 原始事件直接作为前端合同。",
+      "sources": [
+        {
+          "path": "docs/superpowers/specs/2026-11-02-agentscope-ant-design-refactor-design.md",
+          "line": 217
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A05",
+      "status": "A",
+      "title": "ChatService / AgentScope SDK",
+      "phase": "SDK 已替换",
+      "lines": [
+        "当前计划 + 本轮消息 → 完整候选",
+        "OpenAIChatModel 2.0.11 / 单请求",
+        "JSON object / schema · 非流式",
+        "总 deadline / 取消 / 终态门禁"
+      ],
+      "detail": "CLI 正式装配 AgentScopeModelProvider，使用 AgentScope 2.0.11 OpenAIChatModel；旧 provider 名仅作兼容导出。一次物理请求、无重试或结构化 fallback，拒绝/截断/interrupted 不生成提案。网络保留 HTTPX 环境代理与 SOCKS 支持。SDK 文本块仍经 JSON/Pydantic 与 A06 领域校验。完整 Agent 工具循环和会话状态仍属 C03/C05。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/services/chat_service.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/adapters/agentscope_model.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/adapters/openai_compatible.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/cli.py",
+          "line": 65
+        },
+        {
+          "path": "backend/src/great_agent/config.py",
+          "line": 67
+        }
+      ],
+      "mini": {
+        "offset": 238,
+        "title": "模型供应商边界",
+        "lines": [
+          "当前配置：GLM-4.7 兼容端点",
+          "TOML 配置 / 进程环境密钥"
+        ]
+      }
+    },
+    {
+      "id": "A06",
+      "status": "A",
+      "title": "PlanService / Validation",
+      "phase": "P1 已替换",
+      "lines": [
+        "统一 schema / 日期 / 并发校验",
+        "持久候选 / diff / 内容摘要",
+        "基线 UUID / CAS / 幂等接受",
+        "提案状态机 / pending 冻结门禁"
+      ],
+      "detail": "PlanValidationService 替换散落校验；数据库 proposals 替换进程字典；候选不可通过改 expected_revision 换绑基线。冻结在同一写事务拒绝 pending。ProfileRegistry 仅绑定三类现有默认配置，尚非通用能力注册表。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/services/plan_validation_service.py",
+          "line": 22
+        },
+        {
+          "path": "backend/src/great_agent/services/plan_service.py",
+          "line": 143
+        },
+        {
+          "path": "backend/src/great_agent/capabilities/profiles.py",
+          "line": 45
+        }
+      ],
+      "mini": {
+        "offset": 238,
+        "title": "ProfileRegistry · P1 已接入",
+        "lines": [
+          "输入 / 可执行程序 / 模板三类引用",
+          "绑定实际配置 · 拒绝未知 profile"
+        ]
+      }
+    },
+    {
+      "id": "A07",
+      "status": "A",
+      "title": "ExecutionService",
+      "phase": "既有 + P1 门禁",
+      "lines": [
+        "预检 → 冻结 → 配置快照与预览",
+        "快照哈希 / 预览有效期 / 幂等入队",
+        "confirmed=true → 执行批准",
+        "pending 提案阻断冻结 [P1]"
+      ],
+      "detail": "显式用户确认后创建任务与逐 attempt 授权，Worker 启动前再次复核。程序/模板/XML 采用 SHA256；输入快照只记录路径、大小和 mtime，不是全量输入内容哈希。此处是执行授权，不是登录、RBAC 或 AgentScope 权限系统。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/services/execution_service.py",
+          "line": 87
+        },
+        {
+          "path": "backend/src/great_agent/runtime/worker.py",
+          "line": 88
+        }
+      ],
+      "mini": {
+        "offset": 238,
+        "title": "用户确认边界",
+        "lines": [
+          "接受 / 冻结 / 启停由显式产品 API 触发",
+          "模型候选须经服务校验与用户确认"
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "status": "C",
+      "title": "AgentRunService + AgentScope 2",
+      "phase": "P2 待实现",
+      "lines": [
+        "Agent · AgentState · reply_stream",
+        "Run deadline / cancel / 幂等 / 会话串行",
+        "Toolkit / FunctionTool → 受控服务",
+        "Middleware：预算 / 上下文 / 审计"
+      ],
+      "detail": "替换 A05 的模型编排层。完整 Agent、Toolkit、AgentState、middleware、Run 生命周期尚未进入正式路径，也不是 P0 已验收原型。工具仅开放只读与候选提议，领域校验及执行授权继续由 A06/A07 拥有。",
+      "sources": [
+        {
+          "path": "docs/superpowers/specs/2026-11-02-agentscope-ant-design-refactor-design.md",
+          "line": 137
+        },
+        {
+          "path": "docs/validation/2026-11-02-p0-compatibility.md",
+          "line": 50
+        }
+      ],
+      "mini": {
+        "offset": 238,
+        "title": "升级 A05 编排 · 复用 A06 / A07",
+        "lines": [
+          "只读工具 / 候选工具 · 版本化状态快照",
+          "接受、冻结、启停继续走显式产品 API"
+        ]
+      }
+    },
+    {
+      "id": "A08",
+      "status": "A",
+      "title": "原子调度 / 双层配额",
+      "phase": "P1 已替换",
+      "lines": [
+        "SQLite BEGIN IMMEDIATE",
+        "全局 + 实验配额（冻结版本配置）",
+        "claim / attempt / event 同一事务",
+        "终态释放槽位"
+      ],
+      "detail": "按 experiment_id 统计实验运行数；并发上限取自冻结 revision。领取前同时检查全局与实验配额；占槽、attempt、事件原子提交。请求取消但进程未终止时仍占用。调度领取本身不授予执行权限。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/db/repositories.py",
+          "line": 130
+        },
+        {
+          "path": "backend/tests/test_scheduler_quotas.py",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A09",
+      "status": "A",
+      "title": "Worker / ProcessRunner",
+      "phase": "既有主路径",
+      "lines": [
+        "执行批准复核 / 生命周期管理",
+        "argv 子进程 / 日志 / 取消 / 重试",
+        "stale PID 恢复 / 独立 CLI 进程",
+        "当前部署约束：单 Worker"
+      ],
+      "detail": "Worker 复核批准与快照后启动进程；取消通过持久状态传播。重试须重新审阅、确认并生成 attempt。当前恢复基于 PID，未实现跨主机租约或 fencing。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/runtime/worker.py",
+          "line": 49
+        },
+        {
+          "path": "backend/src/great_agent/runtime/process_runner.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/cli.py",
+          "line": 201
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A10",
+      "status": "A",
+      "title": "外部程序适配与结果处理",
+      "phase": "既有主路径",
+      "lines": [
+        "输入预检 / 配置渲染 / argv 生成",
+        "输出检查 / 确定性分析 / 产物登记",
+        "现有具体实现：GREAT / GNSS",
+        "通用插件注册机制归入后续 C04"
+      ],
+      "detail": "当前有具体外部计算适配器和确定性后处理，不是通用插件市场或模型解释器。图以技术职责表达，仅把现有领域实现作为适配器示例。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/adapters/great_pppflt.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/runtime/result_inspector.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/services/result_analysis_service.py",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "C04",
+      "status": "C",
+      "title": "能力注册 / 检索与证据",
+      "phase": "P2 / 后续",
+      "lines": [
+        "只读：计划 / 状态 / 日志 / 产物",
+        "候选：propose_plan / explain_diff",
+        "统一元数据 / I/O schema / 版本与来源",
+        "文档检索与证据解释按后续阶段接入"
+      ],
+      "detail": "先包装受控服务工具，再形成能力元数据目录；检索与科研解释属于后续阶段。现有 capabilities 目录仅有 profile，不能据目录名标成完整能力注册表。",
+      "sources": [
+        {
+          "path": "docs/superpowers/specs/2026-11-02-agentscope-ant-design-refactor-design.md",
+          "line": 312
+        },
+        {
+          "path": "backend/src/great_agent/capabilities/profiles.py",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A11",
+      "status": "A",
+      "title": "SQLite / SQLAlchemy 2 / Alembic",
+      "phase": "既有 + P1 表",
+      "lines": [
+        "experiments / plan_revisions / plan_proposals",
+        "execution_previews / execution_approvals",
+        "daily_tasks / task_attempts / task_events",
+        "result_files · WAL / 外键 / 写事务 / CAS"
+      ],
+      "detail": "完整表名：experiments、plan_revisions、plan_proposals（P1 新增）、execution_previews、execution_approvals、daily_tasks、task_attempts、task_events、result_files。未新增 conversation/message/agent_run 等 Agent 存储。本轮只验证迁移脚本，未升级生产库。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/db/models.py",
+          "line": 26
+        },
+        {
+          "path": "backend/src/great_agent/db/engine.py",
+          "line": 10
+        },
+        {
+          "path": "backend/alembic/versions/0003_plan_proposals.py",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A12",
+      "status": "A",
+      "title": "本地文件与产物",
+      "phase": "既有主路径",
+      "lines": [
+        "runs / 配置快照 / 进程日志",
+        "结果 / 图表 / CSV / manifest",
+        "程序 / 模板 / 配置：SHA256",
+        "输入：路径 / 大小 / mtime"
+      ],
+      "detail": "本地 runs 保存不可变配置快照、日志、结果和分析产物；输入检查仍以路径/大小/mtime 为依据。产物清单记录来源，当前没有对象存储或分布式文件管理。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/runtime/run_storage.py",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/services/execution_service.py",
+          "line": 87
+        },
+        {
+          "path": "backend/src/great_agent/services/result_analysis_service.py",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A13",
+      "status": "A",
+      "title": "日志与运行证据",
+      "phase": "既有主路径",
+      "lines": [
+        "结构化 ID / 阶段 / 耗时",
+        "轮转 API 日志",
+        "确定性结果检查",
+        "持久任务状态与事件"
+      ],
+      "detail": "已有结构化业务日志、任务事件和确定性结果证据；尚未形成 Agent 全链路 tracing、TTFT/成本指标与可执行 Agent 评测体系。",
+      "sources": [
+        {
+          "path": "backend/src/great_agent/runtime/worker.py",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-p0-p1.md",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "C05",
+      "status": "C",
+      "title": "会话持久化 / Agent 可观测性",
+      "phase": "P2 / 后续",
+      "lines": [
+        "conversation / message / agent_run",
+        "tool_call / agent_snapshot / agent_event",
+        "AgentState 版本与工具指纹 / 恢复",
+        "token / 成本 / TTFT / Trace / Eval"
+      ],
+      "detail": "P2 先建立会话、消息、运行、调用和框架状态存储；完整可观测性、评测、证据解释属于后续阶段。P1 仅持久候选与领域执行状态，不保存完整会话。",
+      "sources": [
+        {
+          "path": "docs/superpowers/specs/2026-11-02-agentscope-ant-design-refactor-design.md",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-p0-p1.md",
+          "line": 61
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A14",
+      "status": "A",
+      "title": "AgentScope 2.0.11 · 模型 SDK 已接入",
+      "phase": "模型 SDK 已接入",
+      "lines": [
+        "P0：独立 Python 3.11 / uv.lock / OpenAIChatModel 兼容探针",
+        "历史验证：离线 14/14 + GLM 合成 live 3/3（共 3 请求）",
+        "本轮：正式依赖锁定 / CLI 装配 / 单请求 guard / 安全异常",
+        "新 provider 实测：单次 11.39 秒，提案有效且合成候选一致",
+        "完整 Agent / Toolkit / State 待 C03；领域服务拥有执行批准"
+      ],
+      "detail": "P0 独立模型探针作为历史依据保留。本轮正式调用经 AgentScope SDK，新增真实 SDK MockTransport 回归，并用原HTTP/SOCKS代理环境完成新provider单次真实合成调用（11.39秒，候选完整且一致）。没有据此宣称完整 Agent、严格 schema 或真实分片压力验收。最新接入验收见切换记录。",
+      "sources": [
+        {
+          "path": "pyproject.toml",
+          "line": 1
+        },
+        {
+          "path": "backend/src/great_agent/adapters/agentscope_model.py",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-validated-cutover.md",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-p0-live-result.json",
+          "line": 1
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "A15",
+      "status": "A",
+      "title": "React 19 / antd 6.6.8 · 正式组件已替换",
+      "phase": "antd 已接入",
+      "lines": [
+        "P0：antd-only / antd+X 两份隔离 fixture 与独立锁文件",
+        "本轮：正式 antd 依赖 / 中文 ConfigProvider / 统一主题 tokens",
+        "计划 / 提案 / 聊天 / XML 审阅 / 确认 / 监控 / 产物控件迁移",
+        "分栏键盘与尺寸存储、XML 精确纯文本实现继续保留",
+        "产品等效 skipLibCheck=true；严格声明审计问题仍记录在案"
+      ],
+      "detail": "核心 antd 控件已进入正式工作台；可选 X 仍为 B02。保留 pending 恢复、基线 CAS、只在显式确认后执行、三栏内容状态与准确 XML。第三方严格声明审计问题没有通过关闭额外审计而隐藏。",
+      "sources": [
+        {
+          "path": "frontend/package.json",
+          "line": 1
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "line": 1
+        },
+        {
+          "path": "frontend/src/theme.ts",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-validated-cutover.md",
+          "line": 1
+        },
+        {
+          "path": "docs/validation/2026-11-02-p0-compatibility.md",
+          "line": 103
+        }
+      ],
+      "mini": null
+    },
+    {
+      "id": "C06",
+      "status": "C",
+      "title": "按需求扩展的系统能力",
+      "phase": "后续可选",
+      "lines": [
+        "只读专家多 Agent / 多用户身份与权限",
+        "PostgreSQL / 分布式 Worker 租约与 fencing"
+      ],
+      "detail": "这是后续可选范围，不是当前已部署架构或 P2/P3 的强制依赖。先完成单 Agent 主路径，再按实际并发、协作与数据需求扩展。",
+      "sources": [
+        {
+          "path": "docs/superpowers/specs/2026-11-02-agentscope-ant-design-refactor-design.md",
+          "line": 1
+        }
+      ],
+      "mini": null
+    }
+  ]
+}

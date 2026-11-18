@@ -1,0 +1,37 @@
+# Install as /etc/systemd/system/frps.service only after configuration validation.
+# Provision non-login system user/group frp before installing this unit.
+# /etc/frp and /etc/frp/tls: root:frp 0750; configs/cert/key/token: root:frp 0640.
+# Keep /usr/local/bin/frps root-owned and executable, without setuid/capabilities.
+# Token file: exactly one random 64-hex token (optional final newline), identical
+# to the protected Windows frpc.token. No token is present in this repository.
+[Unit]
+Description=GREAT Agent trial authenticated TLS relay
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=frp
+Group=frp
+WorkingDirectory=/etc/frp
+# Reject absent, empty and whitespace-only token files before binding any port.
+# The guide also checks the full file format; frp itself accepts an empty token.
+ExecStartPre=/usr/bin/grep -qxE [0-9A-Fa-f]{64} /etc/frp/frps.token
+ExecStart=/usr/local/bin/frps -c /etc/frp/frps.toml
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

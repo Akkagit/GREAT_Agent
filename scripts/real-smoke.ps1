@@ -5,6 +5,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if ($PreflightOnly -eq $Execute) { throw 'Choose exactly one of -PreflightOnly or -Execute.' }
+if ($Execute) { throw 'Automatic execution is disabled. Open the Web workspace, review the XML and executable path, and explicitly confirm execution there.' }
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $configPath = (Resolve-Path -LiteralPath (Join-Path $projectRoot $Config)).Path
 $smokeRoot = Join-Path $projectRoot 'data\real-smoke'

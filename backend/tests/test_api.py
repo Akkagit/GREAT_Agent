@@ -120,6 +120,7 @@ def test_full_manual_plan_flow(client: TestClient, valid_spec_payload: dict) -> 
         f"/api/v1/experiments/{created['id']}/proposals",
         json={
             "source": "card",
+            "base_revision_id": created["current_revision_id"],
             "candidate": {**valid_spec_payload, "concurrency": 2},
         },
     ).json()
@@ -149,6 +150,7 @@ def test_get_experiment_returns_current_revision_for_workspace(
         "id": str(experiment.id),
         "status": "draft",
         "current_revision": 1,
+        "current_revision_id": str(experiment.current_revision_id),
         "spec": valid_spec.model_dump(mode="json"),
     }
 
@@ -160,7 +162,7 @@ def test_run_is_blocked_when_preflight_has_missing_inputs(
     experiment = services.plan_service.create_experiment(valid_spec)
     services.plan_service.freeze_revision(experiment.id, expected_revision=1)
 
-    response = client.post(f"/api/v1/experiments/{experiment.id}/run")
+    response = client.post(f"/api/v1/experiments/{experiment.id}/execution-preview", json={"expected_revision": 1})
 
     assert response.status_code == 409
     body = response.json()
@@ -174,7 +176,8 @@ def test_stale_expected_revision_returns_409(
     created = client.post("/api/v1/experiments", json=valid_spec_payload).json()
     preview = client.post(
         f"/api/v1/experiments/{created['id']}/proposals",
-        json={"source": "card", "candidate": valid_spec_payload},
+        json={"source": "card", "candidate": valid_spec_payload,
+              "base_revision_id": created["current_revision_id"]},
     ).json()
 
     response = client.post(
@@ -193,7 +196,8 @@ def test_editing_frozen_plan_returns_409(api_context, valid_spec: ExperimentSpec
 
     response = client.post(
         f"/api/v1/experiments/{experiment.id}/proposals",
-        json={"source": "card", "candidate": valid_spec.model_dump(mode="json")},
+        json={"source": "card", "candidate": valid_spec.model_dump(mode="json"),
+              "base_revision_id": str(experiment.current_revision_id)},
     )
 
     assert response.status_code == 409

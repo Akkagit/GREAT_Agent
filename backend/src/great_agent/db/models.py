@@ -114,6 +114,19 @@ class TaskAttemptModel(Base):
         DateTime(timezone=True), nullable=True
     )
     log_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Historical attempts have unknown process identity. Never manufacture it
+    # from the attempt timestamp or a PID which may since have been reused.
+    owner_session_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    launch_phase: Mapped[str] = mapped_column(String(24), nullable=False, default="legacy_unknown", server_default="legacy_unknown")
+    process_created_at: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    process_executable: Mapped[str | None] = mapped_column(Text, nullable=True)
+    command_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    recovery_state: Mapped[str] = mapped_column(String(24), nullable=False, default="none", server_default="none")
+    recovery_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    analysis_status: Mapped[str] = mapped_column(String(24), nullable=False, default="unknown", server_default="unknown")
+    artifact_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
 
 class TaskEventModel(Base):
@@ -151,3 +164,58 @@ class ResultFileModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )
+
+
+class ExecutionPreviewModel(Base):
+    __tablename__ = "execution_previews"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(ForeignKey("experiments.id"), index=True)
+    revision_id: Mapped[str] = mapped_column(ForeignKey("plan_revisions.id"))
+    payload_json: Mapped[str] = mapped_column(Text)
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ExecutionApprovalModel(Base):
+    __tablename__ = "execution_approvals"
+
+    task_id: Mapped[str] = mapped_column(ForeignKey("daily_tasks.id"), primary_key=True)
+    attempt_number: Mapped[int] = mapped_column(Integer, primary_key=True)
+    preview_id: Mapped[str] = mapped_column(ForeignKey("execution_previews.id"), index=True)
+    job_index: Mapped[int] = mapped_column(Integer)
+
+
+class PlanProposalModel(Base):
+    __tablename__ = "plan_proposals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    experiment_id: Mapped[str] = mapped_column(
+        ForeignKey("experiments.id"), nullable=False, index=True
+    )
+    base_revision_id: Mapped[str] = mapped_column(
+        ForeignKey("plan_revisions.id"), nullable=False
+    )
+    source: Mapped[str] = mapped_column(String(32), nullable=False)
+    candidate_json: Mapped[str] = mapped_column(Text, nullable=False)
+    candidate_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    diff_json: Mapped[str] = mapped_column(Text, nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    source_proposal_id: Mapped[str | None] = mapped_column(
+        ForeignKey("plan_proposals.id"), nullable=True
+    )
+    accepted_revision_id: Mapped[str | None] = mapped_column(
+        ForeignKey("plan_revisions.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+
+# Register conversation tables for create_all and Alembic metadata.
+from great_agent.db import conversation_models  # noqa: E402,F401
+from great_agent.db import monitor_models  # noqa: E402,F401
+from great_agent.db import knowledge_models  # noqa: E402,F401
+from great_agent.db import knowledge_chat_models  # noqa: E402,F401
+from great_agent.db import knowledge_translation_models  # noqa: E402,F401
+from great_agent.db import analysis_models  # noqa: E402,F401
+from great_agent.research import models as research_models  # noqa: E402,F401

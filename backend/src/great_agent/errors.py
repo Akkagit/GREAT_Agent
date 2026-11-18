@@ -2,6 +2,14 @@ class GreatAgentError(Exception):
     """Base class for errors with a stable application-level meaning."""
 
 
+class ExecutionReviewError(GreatAgentError):
+    """Execution requires fresh, explicit approval of concrete review material."""
+
+    def __init__(self, message: str, code: str = "execution_review_invalid") -> None:
+        super().__init__(message)
+        self.code = code
+
+
 class PlanValidationError(GreatAgentError, ValueError):
     """Raised when a typed plan violates a domain or local policy rule."""
 
@@ -12,6 +20,14 @@ class ExperimentNotFoundError(GreatAgentError, LookupError):
 
 class RevisionConflictError(GreatAgentError):
     """Raised when a revision write is based on stale state."""
+
+
+class ProposalNotFoundError(GreatAgentError, LookupError):
+    """Raised when a proposal is unknown within the requested experiment."""
+
+
+class PendingProposalError(GreatAgentError):
+    """Raised when freezing would hide an unresolved plan proposal."""
 
 
 class PlanFrozenError(GreatAgentError):

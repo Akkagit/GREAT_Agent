@@ -1,0 +1,34 @@
+# Copy to F:\GREAT_Agent\deploy\local\frpc.toml, protected by service-account ACLs.
+# Schema checked against official frp v0.72.0; use matching reviewed frp releases.
+# https://github.com/fatedier/frp/blob/v0.72.0/conf/frpc_full_example.toml
+# Replace relay.example.com below with the relay's actual DNS name, including in
+# serverName, and issue a certificate with that exact DNS SAN from a trusted CA.
+serverAddr = 'relay.example.com'
+serverPort = 7000
+loginFailExit = true
+
+auth.method = 'token'
+auth.additionalScopes = ['HeartBeats', 'NewWorkConns']
+auth.tokenSource.type = 'file'
+# Same random 64-hex token as /etc/frp/frps.token. Restrict this file's ACL to
+# administrators and the actual tunnel service account. Missing/unreadable files
+# cause resolution errors, but frp accepts blank contents: check the file before
+# every service installation/start. Never create a placeholder token file.
+auth.tokenSource.file.path = 'F:\GREAT_Agent\deploy\local\frpc.token'
+
+transport.protocol = 'tcp'
+transport.tls.enable = true
+transport.tls.serverName = 'relay.example.com'
+# Copy only the CA public certificate, not its private signing key, to Windows.
+transport.tls.trustedCaFile = 'F:\GREAT_Agent\deploy\local\tls\relay-ca.crt'
+
+log.to = 'console'
+log.level = 'info'
+log.disablePrintColor = true
+
+[[proxies]]
+name = 'great-agent-trial-api'
+type = 'tcp'
+localIP = '127.0.0.1'
+localPort = 8766
+remotePort = 18765

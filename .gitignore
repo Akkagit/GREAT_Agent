@@ -8,6 +8,7 @@ config/secrets.*
 # Runtime state and scientific outputs
 data/
 runs/
+local/models/
 logs/
 
 # Python
@@ -23,6 +24,7 @@ venv/
 node_modules/
 dist/
 coverage/
+frontend/.releases/
 
 # IDE and OS
 .idea/
@@ -32,3 +34,33 @@ Thumbs.db
 
 # Local Git worktrees
 .worktrees/
+
+# Local agent workspaces, verification outputs and machine probes.
+# Implementation plans and shareable validation reports live under docs/.
+/.codex_work/
+/.superpowers/
+/.tmp/
+/tmp/
+/output/
+/test_localsystem.txt
+
+# Local P0/P1 compatibility environments and test artifacts
+/.codex_work/agentscope-p0-p1-20261102/
+/tmp/p0-*
+/tmp/p1-*
+/tmp/task5-frontend/
+/tmp/domain-review-*
+
+# Invited-trial deployment: only example configurations belong in Git.
+/local/trial-release/
+/deploy/local/
+/deploy/gateway/Caddyfile
+/deploy/gateway/frps.toml
+/deploy/gateway/*.env
+/deploy/windows/frpc.toml
+/deploy/windows/*.xml
+/deploy/**/*.key
+/deploy/**/*.pem
+/deploy/**/*.pfx
+/deploy/**/*.crt
+/deploy/**/*.token

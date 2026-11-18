@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,8 +24,44 @@ class InvalidModelSchema(ModelProviderError):
     """Raised when model JSON does not match the allowed plan schema."""
 
 
+ModelErrorCategory = Literal["schema", "invalid_json", "timeout", "provider"]
+MODEL_ERROR_MESSAGES = {
+    "schema": "模型建议未通过计划校验，请重试。",
+    "invalid_json": "模型返回格式无效，请重试。",
+    "timeout": "模型响应超时，请稍后重试。",
+    "provider": "模型服务暂时不可用，请稍后重试。",
+}
+
+
 class ModelProposalError(GreatAgentError):
-    """Raised when a safe chat proposal cannot be produced."""
+    """A classified failure whose public text never contains provider content."""
+
+    def __init__(
+        self, message: str = "", *, category: ModelErrorCategory | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        self.category = category if category in MODEL_ERROR_MESSAGES else "provider"
+        self.request_id = request_id
+        super().__init__(MODEL_ERROR_MESSAGES[self.category])
+
+
+def canonicalize_station_selection(
+    payload: object, current: ExperimentSpec | None,
+) -> object:
+    """Detach an explicitly edited station snapshot from its inherited preset."""
+    if current is None or current.station_group_id != "default_15" or not isinstance(payload, dict):
+        return payload
+    candidate = payload.get("candidate")
+    if not isinstance(candidate, dict) or candidate.get("station_group_id") != "default_15":
+        return payload
+    stations = candidate.get("stations")
+    if not isinstance(stations, list) or not stations or any(not isinstance(s, str) for s in stations):
+        return payload
+    normalized = tuple(s.strip().upper() for s in stations)
+    if (not all(normalized) or len(set(normalized)) != len(normalized)
+            or normalized == current.stations):
+        return payload
+    return {**payload, "candidate": {**candidate, "station_group_id": "custom"}}
 
 
 class ModelPlanProposal(BaseModel):

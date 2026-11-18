@@ -1,0 +1,49 @@
+{
+  "observed_date": "2026-11-02",
+  "requested_model": "glm-4.7",
+  "agentscope_version": "2.0.11",
+  "credential_source": "Windows User environment, injected into probe process only",
+  "status": "pass",
+  "probe_exit_code": 0,
+  "offline_passed": 14,
+  "live": {
+    "status": "pass",
+    "requests": 3,
+    "elapsed_seconds": 11.234,
+    "cases": [
+      {
+        "name": "sdk_native_stream_tools",
+        "status": "pass",
+        "requests": 1,
+        "is_last": true,
+        "interrupted": false,
+        "synthetic_result_valid": true,
+        "usage_present": true
+      },
+      {
+        "name": "vendor_max_tokens_stream_tools",
+        "status": "pass",
+        "requests": 1,
+        "is_last": true,
+        "interrupted": false,
+        "synthetic_result_valid": true,
+        "usage_present": true
+      },
+      {
+        "name": "json_object_baseline",
+        "status": "pass",
+        "requests": 1,
+        "is_last": true,
+        "interrupted": false,
+        "synthetic_result_valid": true,
+        "usage_present": true
+      }
+    ]
+  },
+  "total_elapsed_seconds": 25.844,
+  "request_limit": 8,
+  "output_token_parameter_limit": 512,
+  "live_deadline_seconds": 180,
+  "source_json_sha256": "7efb511eab275cf9ce6707cc673e9382d50a6819387c44c89a74c162889a4d5d",
+  "scope": "Three synthetic live paths only; no model tools or GREAT executed, no product integration, strict JSON Schema, or fragmentation stress test claimed."
+}

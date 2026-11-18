@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 from uuid import UUID
 
 from great_agent.db.repositories import TaskRepository
+from great_agent.db.monitor_repository import register_result_files
 from great_agent.domain.dates import YearDoy
 from great_agent.runtime.result_analysis import generate_analysis
 from great_agent.runtime.result_inspector import ResultFileInfo
@@ -19,11 +20,38 @@ def analyze_task(
     storage: RunStorage,
     reference_experiment_id: UUID | None = None,
     hold_seconds: float = 600,
+    attempt_id: UUID | None = None,
+    publish: bool = True,
 ) -> tuple[ResultFileInfo, ...]:
     task = repository.get_task(task_id)
     attempt = task.active_attempt
     if attempt is None or task.status not in ("running", "succeeded"):
         raise ValueError("analysis requires an active or successful solver attempt")
+    if attempt_id is not None and attempt.id != attempt_id:
+        raise ValueError('analysis target attempt changed')
+    if publish:
+        repository.publish_event(task.id, "analysis_started", {"attempt_id": str(attempt.id)})
+    try:
+        return _analyze_task(
+            task, repository=repository, plan_service=plan_service, storage=storage,
+            reference_experiment_id=reference_experiment_id, hold_seconds=hold_seconds,
+            publish=publish,
+        )
+    except Exception as error:
+        if publish:
+            repository.publish_event(task.id, "analysis_failed", {
+                "attempt_id": str(attempt.id), "message": str(error),
+            })
+        raise
+
+
+def _analyze_task(
+    task, *, repository: TaskRepository, plan_service: PlanService, storage: RunStorage,
+    reference_experiment_id: UUID | None, hold_seconds: float,
+    publish: bool = True,
+) -> tuple[ResultFileInfo, ...]:
+    attempt = task.active_attempt
+    assert attempt is not None
     reference_id = reference_experiment_id or task.experiment_id
     reference_spec = plan_service.get_current_revision(reference_id).spec
     if reference_spec.scenario.frequency != "DF" or reference_spec.scenario.ambiguity != "float":
@@ -61,10 +89,11 @@ def analyze_task(
     artifacts = generate_analysis(
         targets, output, reference_files=references,
         hold_seconds=hold_seconds, interval_seconds=interval,
+        solution_label=f"{spec.scenario.frequency}_{spec.scenario.ambiguity.capitalize()}",
     )
-    repository.add_result_files(task.id, attempt.id, artifacts)
-    repository.publish_event(task.id, "analysis_completed", {
-        "attempt_id": str(attempt.id), "artifact_count": len(artifacts),
-        "reference_experiment_id": str(reference_id), "hold_seconds": hold_seconds,
-    })
+    if publish:
+        register_result_files(repository, task.id, attempt.id, artifacts, analysis_payload={
+            "artifact_count": len(artifacts),
+            "reference_experiment_id": str(reference_id), "hold_seconds": hold_seconds,
+        })
     return artifacts

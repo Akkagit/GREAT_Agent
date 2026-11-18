@@ -1,0 +1,35 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "bold-semantic-and-visible",
+      "pass": true
+    },
+    {
+      "name": "list-code-table-rendered",
+      "pass": true
+    },
+    {
+      "name": "sidebar-refreshed",
+      "pass": true
+    },
+    {
+      "name": "receipt-restored-on-reload",
+      "pass": true
+    },
+    {
+      "name": "created-workspace-opens",
+      "pass": true
+    },
+    {
+      "name": "mobile-no-page-overflow",
+      "pass": true
+    },
+    {
+      "name": "no-browser-exceptions",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "scope": "Built frontend with synthetic isolated API; backend persistence verified in pytest."
+}

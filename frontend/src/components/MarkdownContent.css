@@ -1,0 +1,27 @@
+.markdown-content { min-width: 0; font-size: 13px; line-height: 1.75; overflow-wrap: anywhere; }
+.markdown-content > :first-child { margin-top: 0; }
+.markdown-content > :last-child { margin-bottom: 0; }
+.markdown-content p { margin: .65em 0; }
+.markdown-content :is(h1, h2, h3, h4, h5, h6) { margin: 1.1em 0 .5em; font-size: 1.08em; line-height: 1.5; font-weight: 650; }
+.markdown-content h1 { font-size: 1.3em; }
+.markdown-content h2 { font-size: 1.18em; }
+.markdown-content :is(ul, ol) { margin: .65em 0; padding-left: 1.7em; }
+.markdown-content li + li { margin-top: .3em; }
+.markdown-content li > p { margin: .3em 0; }
+.markdown-content .contains-task-list { padding-left: 0; list-style: none; }
+.markdown-content .task-list-item > input { margin: 0 .45em 0 0; }
+.markdown-content code { padding: .12em .3em; border-radius: 3px; background: #e1e8f1; font: .92em/1.6 Consolas, "Cascadia Code", monospace; }
+.markdown-content pre { max-width: 100%; overflow-x: auto; margin: .8em 0; padding: 12px; border-radius: 5px; background: #15243a; color: #e8eff9; tab-size: 4; }
+.markdown-content pre > code { padding: 0; background: transparent; color: inherit; white-space: pre; overflow-wrap: normal; }
+.markdown-content blockquote { margin: .8em 0; padding: .55em .85em; border-left: 3px solid #a5b7d2; color: #526176; background: #f1f5fa; }
+.markdown-content strong, .markdown-content :is(h1, h2, h3, h4, h5, h6) { color: #153c70; }
+.markdown-content .katex-display { max-width: 100%; margin: 1em 0; padding: .5em 0; overflow-x: auto; overflow-y: hidden; }
+.markdown-content .katex-display > .katex { white-space: nowrap; }
+.markdown-content .katex { font-size: 1.08em; }
+.markdown-content .katex-error { white-space: pre-wrap; overflow-wrap: anywhere; }
+.markdown-content a { color: var(--blue, #1d4ed8); text-decoration: underline; text-underline-offset: 2px; }
+.markdown-content img { max-width: 100%; height: auto; }
+.markdown-content table { display: block; width: max-content; max-width: 100%; overflow-x: auto; margin: .8em 0; border-collapse: collapse; }
+.markdown-content :is(th, td) { padding: 6px 9px; border: 1px solid var(--line, #d7dee9); text-align: left; }
+.markdown-content th { background: #e3ebf6; }
+.markdown-content hr { margin: 1em 0; border: 0; border-top: 1px solid var(--line, #d7dee9); }

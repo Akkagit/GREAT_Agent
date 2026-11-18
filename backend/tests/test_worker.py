@@ -259,7 +259,8 @@ def worker_factory(tmp_path: Path):
             adapter=adapter,
             run_storage=storage,
         )
-        task = task_service.materialize(experiment.id)[0]
+        preview = task_service.execution_service.prepare(experiment.id, expected_revision=1)
+        task = task_service.execution_service.confirm(experiment.id, preview_id=preview.id, expected_revision=1, confirmed=True)[0]
         selected_mode = {"value": mode}
         solver = Path(__file__).parent / "fixtures" / "mock_solver.py"
 
@@ -285,6 +286,7 @@ def worker_factory(tmp_path: Path):
             result_inspector=PppfltResultInspector(),
             max_concurrency=1,
             command_factory=command_factory,
+            execution_service=task_service.execution_service,
         )
         return worker, task, selected_mode
 
@@ -314,14 +316,17 @@ async def test_worker_records_success_and_files(worker_factory) -> None:
     assert len(stored.result_files(kind="flt")) == 15
 
 
-async def test_worker_automatically_registers_analysis_and_station_plots(worker_factory) -> None:
+async def test_worker_automatically_registers_analysis_and_three_summary_plots(worker_factory) -> None:
     import json
 
     worker, task, _ = worker_factory("success")
     worker.convergence_hold_seconds = 120
     await worker.run_once()
     stored = worker.repository.get_task(task.id)
-    assert len(stored.result_files(kind="plot")) == 16
+    assert {Path(item.path).name for item in stored.result_files(kind="plot")} == {
+        'enu.png', 'convergence.png', 'fix_rate.png',
+    }
+    assert len(stored.result_files(kind="plot")) == 3
     assert len(stored.result_files(kind="analysis")) == 1
     assert all(Path(item.path).is_file() for item in stored.result_files(kind="plot"))
     report = json.loads(Path(stored.result_files(kind="analysis")[0].path).read_text())
@@ -393,13 +398,32 @@ async def test_cancel_stops_process_and_preserves_log(worker_factory) -> None:
     assert Path(stored.active_attempt.log_path).is_file()
 
 
+async def test_cancel_from_separate_api_worker_reaches_real_worker(worker_factory) -> None:
+    import asyncio
+    worker, task, _ = worker_factory("slow")
+    api_worker = Worker(repository=worker.repository, plan_service=worker.plan_service, adapter=worker.adapter,
+        run_storage=worker.run_storage, process_runner=ProcessRunner(), result_inspector=worker.result_inspector,
+        max_concurrency=1, execution_service=worker.execution_service)
+    run = asyncio.create_task(worker.run_once())
+    try:
+        await wait_until_running(worker.repository, task.id)
+        await api_worker.cancel_experiment(task.experiment_id)
+        await asyncio.wait_for(asyncio.shield(run), timeout=2)
+        assert worker.repository.get_task(task.id).status == 'cancelled'
+    finally:
+        if not run.done():
+            await worker.process_runner.cancel(task.id)
+            await run
+
+
 async def test_retry_creates_new_attempt_and_retains_old_log(worker_factory) -> None:
     worker, task, selected_mode = worker_factory("fail")
     await worker.run_once()
     first = worker.repository.get_task(task.id).active_attempt
     selected_mode["value"] = "success"
 
-    worker.retry(task.id)
+    preview = worker.execution_service.prepare(task.experiment_id, expected_revision=1, task_id=task.id)
+    worker.execution_service.confirm(task.experiment_id, preview_id=preview.id, expected_revision=1, confirmed=True)
     await worker.run_once()
 
     second = worker.repository.get_task(task.id).active_attempt

@@ -31,6 +31,21 @@ from great_agent.services.plan_service import PlanService
 STATIONS = tuple(f"S{i:03d}" for i in range(15))
 
 
+def model_completion(content: str) -> dict:
+    return {
+        "id": "chatcmpl-fixture", "object": "chat.completion", "created": 1,
+        "model": "fixture", "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+        "choices": [{"index": 0, "finish_reason": "stop",
+                     "message": {"role": "assistant", "content": content}}],
+    }
+
+
+def message_text(content: str | list[dict]) -> str:
+    if isinstance(content, str):
+        return content
+    return "".join(block["text"] for block in content if block.get("type") == "text")
+
+
 class FakeProvider:
     def __init__(self, response: object) -> None:
         self.response = response
@@ -131,8 +146,9 @@ async def test_model_cannot_inject_command(
         "explanation": "执行命令",
     }
 
-    with pytest.raises(ModelProposalError, match="schema"):
+    with pytest.raises(ModelProposalError) as caught:
         await chat_service.propose(experiment.id, "执行命令")
+    assert caught.value.category == "schema"
 
 
 async def test_openai_compatible_provider_sends_constrained_json_schema(
@@ -149,7 +165,7 @@ async def test_openai_compatible_provider_sends_constrained_json_schema(
         }
         return httpx.Response(
             200,
-            json={"choices": [{"message": {"content": json.dumps(proposal)}}]},
+            json=model_completion(json.dumps(proposal)),
         )
 
     settings = ModelSettings(
@@ -173,9 +189,65 @@ async def test_openai_compatible_provider_sends_constrained_json_schema(
     body = cast(dict, seen["body"])
     assert body["model"] == "qwen-test"
     assert body["response_format"]["type"] == "json_schema"
-    system_prompt = body["messages"][0]["content"]
+    system_prompt = message_text(body["messages"][0]["content"])
     assert "forbid paths, commands, XML, and invented files" in system_prompt
     assert '"workflow":"pppflt"' in system_prompt
+
+
+async def test_glm_json_mode_supplies_schema_in_prompt_and_uses_correct_endpoint(
+    base_spec: ExperimentSpec,
+) -> None:
+    def respond(request: httpx.Request) -> httpx.Response:
+        assert str(request.url) == "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+        body = json.loads(request.content)
+        assert body["model"] == "glm-4.7"
+        assert body["response_format"] == {"type": "json_object"}
+        assert body["thinking"] == {"type": "disabled"}
+        assert body["max_tokens"] == 2048
+        prompt = message_text(body["messages"][0]["content"])
+        schema = json.loads(prompt.split("JSON schema: ", 1)[1])
+        assert schema == ModelPlanProposal.model_json_schema()
+        return httpx.Response(200, json=model_completion(json.dumps({
+            "candidate": base_spec.model_dump(mode="json"), "explanation": "保持当前设置"
+        })))
+
+    settings = ModelSettings(
+        base_url="https://open.bigmodel.cn/api/paas/v4",
+        name="glm-4.7", response_format="json_object",
+        api_key="fixture-key",
+        thinking="disabled", max_tokens=2048,
+    )
+    provider = OpenAICompatibleProvider(settings, transport=httpx.MockTransport(respond))
+    proposal = await provider.propose_plan("保持不变", base_spec)
+    assert proposal.candidate == base_spec
+
+
+async def test_model_deadline_limits_total_request_time(base_spec: ExperimentSpec) -> None:
+    import asyncio
+
+    async def slow(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(1)
+        return httpx.Response(200, json={})
+
+    provider = OpenAICompatibleProvider(
+        ModelSettings(base_url="https://model.example/v1", name="mock", api_key="fixture-key", request_timeout_seconds=0.01),
+        transport=httpx.MockTransport(slow),
+    )
+    with pytest.raises(ModelTimeout, match="timed out"):
+        await provider.propose_plan("更新", base_spec)
+
+
+async def test_glm_json_mode_still_rejects_invalid_plan_schema(base_spec: ExperimentSpec) -> None:
+    settings = ModelSettings(
+        base_url="https://open.bigmodel.cn/api/paas/v4",
+        name="glm-4.7", response_format="json_object",
+        api_key="fixture-key",
+    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(
+        200, json=model_completion('{"candidate":{"command":"format F:"}}')
+    ))
+    with pytest.raises(InvalidModelSchema):
+        await OpenAICompatibleProvider(settings, transport=transport).propose_plan("更新", base_spec)
 
 
 @pytest.mark.parametrize(
@@ -190,11 +262,11 @@ async def test_openai_compatible_provider_classifies_bad_output(
 ) -> None:
     transport = httpx.MockTransport(
         lambda request: httpx.Response(
-            200, json={"choices": [{"message": {"content": content}}]}
+            200, json=model_completion(content)
         )
     )
     provider = OpenAICompatibleProvider(
-        ModelSettings(base_url="https://model.example/v1", name="qwen-test"),
+        ModelSettings(base_url="https://model.example/v1", name="qwen-test", api_key="fixture-key"),
         transport=transport,
     )
 
@@ -209,7 +281,7 @@ async def test_openai_compatible_provider_classifies_timeout(
         raise httpx.ReadTimeout("slow", request=request)
 
     provider = OpenAICompatibleProvider(
-        ModelSettings(base_url="https://model.example/v1", name="qwen-test"),
+        ModelSettings(base_url="https://model.example/v1", name="qwen-test", api_key="fixture-key"),
         transport=httpx.MockTransport(timeout),
     )
 
@@ -242,7 +314,6 @@ def test_chat_api_returns_stored_preview(
         SimpleNamespace(
             plan_service=plan_service,
             chat_service=chat_service,
-            proposals={},
         ),
     )
     client = TestClient(create_app(settings, services=services))
@@ -256,4 +327,4 @@ def test_chat_api_returns_stored_preview(
     body = response.json()
     assert body["source"] == "chat"
     assert body["explanation"] == "更新日期"
-    assert body["id"] in {str(item) for item in services.proposals}
+    assert body["id"] in {str(item.id) for item in plan_service.list_proposals(experiment.id)}

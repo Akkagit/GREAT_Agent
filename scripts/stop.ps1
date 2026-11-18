@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 $pidRoot = Join-Path $projectRoot 'data\pids'
-foreach ($name in @('api', 'worker')) {
+foreach ($name in @('api', 'worker', 'research-worker')) {
     $pidPath = Join-Path $pidRoot "$name.pid"
     if (-not (Test-Path -LiteralPath $pidPath)) { continue }
     $savedPid = [int](Get-Content -LiteralPath $pidPath -Raw).Trim()

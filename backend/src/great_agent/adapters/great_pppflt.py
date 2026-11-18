@@ -12,6 +12,7 @@ from great_agent.adapters.pppflt_xml import (
     set_text,
     write_xml,
 )
+from great_agent.capabilities.profiles import ProfileRegistry
 from great_agent.config import PppfltSettings
 from great_agent.domain.dates import YearDoy
 from great_agent.domain.plans import ExperimentSpec
@@ -28,10 +29,13 @@ class RenderedTask:
 class GreatPppfltAdapter:
     def __init__(self, settings: PppfltSettings) -> None:
         self.settings = settings
+        self.profiles = ProfileRegistry.from_settings(settings)
 
     def render_task(
-        self, spec: ExperimentSpec, date: YearDoy, task_dir: Path
+        self, spec: ExperimentSpec, date: YearDoy, task_dir: Path,
+        *, xml_path: Path | None = None,
     ) -> RenderedTask:
+        profiles = self.profiles.resolve(spec)
         resolved_task_dir = task_dir.resolve()
         output_dir = (resolved_task_dir / "results").resolve()
         self._require_inside(output_dir, resolved_task_dir, "output directory")
@@ -39,7 +43,7 @@ class GreatPppfltAdapter:
 
         parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
         try:
-            tree = ET.parse(self.settings.template_path, parser=parser)
+            tree = ET.parse(profiles.template.template_path, parser=parser)
         except (ET.ParseError, OSError) as error:
             raise XmlValidationError(f"cannot parse template: {error}") from error
         root = tree.getroot()
@@ -116,7 +120,8 @@ class GreatPppfltAdapter:
         else:
             set_text(root, "./outputs/root", str(output_dir))
 
-        xml_path = resolved_task_dir / "config.xml"
+        xml_path = xml_path.resolve() if xml_path is not None else resolved_task_dir / "config.xml"
+        xml_path.parent.mkdir(parents=True, exist_ok=True)
         write_xml(tree, str(xml_path))
         rendered = RenderedTask(xml_path=xml_path, output_dir=output_dir)
         self._validate_round_trip(rendered, spec, date, products)
@@ -126,10 +131,11 @@ class GreatPppfltAdapter:
         self, spec: ExperimentSpec, date: YearDoy, task_dir: Path
     ) -> PreflightReport:
         del task_dir
+        profiles = self.profiles.resolve(spec)
         paths = self._input_paths(spec, date)
         required: list[tuple[str, YearDoy, str | None, Path]] = [
-            ("executable", date, None, self.settings.executable.resolve()),
-            ("template", date, None, self.settings.template_path.resolve()),
+            ("executable", date, None, profiles.solver.executable),
+            ("template", date, None, profiles.template.template_path),
         ]
         required.extend(
             ("observation", date, station, path)
@@ -156,16 +162,18 @@ class GreatPppfltAdapter:
         return inspect_files(required)
 
     def build_command(self, rendered: RenderedTask) -> tuple[str, ...]:
-        return (str(self.settings.executable), "-x", str(rendered.xml_path))
+        executable = self.profiles.resolve_defaults().solver.executable
+        return (str(executable), "-x", str(rendered.xml_path))
 
     def _input_paths(
         self, spec: ExperimentSpec, date: YearDoy
     ) -> dict[str, Path | tuple[Path, ...]]:
+        inputs = self.profiles.resolve(spec).input
         values = {"year": date.year, "doy": date.doy, "yy": date.year % 100}
         observations = tuple(
             self._render_under(
-                self.settings.observation_root,
-                self.settings.observation_template,
+                inputs.observation_root,
+                inputs.observation_template,
                 **values,
                 station=station,
                 station_lower=station.lower(),
@@ -173,22 +181,22 @@ class GreatPppfltAdapter:
             for station in spec.stations
         )
         templates = {
-            "rinexn": self.settings.navigation_template,
-            "sp3": self.settings.orbit_template,
-            "clk": self.settings.clock_template,
-            "bias": self.settings.bias_template,
-            "ifcb": self.settings.ifcb_template,
-            "upd": self.settings.upd_template,
-            "antenna": self.settings.antenna_template,
-            "tide": self.settings.tide_template,
-            "erp": self.settings.erp_template,
-            "planetary": self.settings.planetary_template,
+            "rinexn": inputs.navigation_template,
+            "sp3": inputs.orbit_template,
+            "clk": inputs.clock_template,
+            "bias": inputs.bias_template,
+            "ifcb": inputs.ifcb_template,
+            "upd": inputs.upd_template,
+            "antenna": inputs.antenna_template,
+            "tide": inputs.tide_template,
+            "erp": inputs.erp_template,
+            "planetary": inputs.planetary_template,
         }
         paths: dict[str, Path | tuple[Path, ...]] = {"observation": observations}
         paths.update(
             {
                 kind: self._render_under(
-                    self.settings.product_root, template, **values
+                    inputs.product_root, template, **values
                 )
                 for kind, template in templates.items()
             }

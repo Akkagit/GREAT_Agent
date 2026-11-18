@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "provider": "AgentScopeModelProvider",
+  "model": "glm-4.7",
+  "request_limit": 1,
+  "provider_calls": 1,
+  "deadline_seconds": 45,
+  "scope": "Synthetic15 stations only; no database, file preflight, XML, worker or solver; environment proxies unchanged",
+  "station_count": 14,
+  "station_group_id": "custom",
+  "removed_exact_first": true,
+  "other_fields_unchanged": true,
+  "elapsed_seconds": 16.303
+}

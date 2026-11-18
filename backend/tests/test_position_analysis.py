@@ -79,3 +79,40 @@ def test_external_df_float_reference_is_shared_without_recentering_target(tmp_pa
     assert result["reference_xyz_m"] == [6378137.0, 0.0, 0.0]
     assert result["joint_convergence_minutes"] is None
     assert result["epochs"][-1]["up_m"] == 1.0
+
+
+def test_native_ambiguity_status_drives_fix_rate_instead_of_quality(tmp_path: Path) -> None:
+    from great_agent.domain.position_analysis import analyze_station, read_flt
+
+    path = tmp_path / "native.flt"
+    path.write_text(
+        "30 6378137 1 0 0 0 0 0 0 0 0 0 0 8 1.2 0.1 Fixed 2\n"
+        "60 6378137 0 0 0 0 0 0 0 0 0 0 0 8 1.2 0.1 Float 1\n"
+        "90 6378137 0 0 0 0 0 0 0 0 0 0 0 8 1.2 0.1 Unknown 1\n",
+        encoding="utf-8",
+    )
+    result = analyze_station(read_flt(path), hold_seconds=0)
+    assert result["ambiguity_counts"] == {"fixed": 1, "float": 1, "unknown": 1}
+    assert result["fix_rate"] == 0.5
+    assert result["epochs"][0]["ambiguity_status"] == "Fixed"
+
+
+def test_population_std_matches_great_python_statistics(tmp_path: Path) -> None:
+    from great_agent.domain.position_analysis import analyze_station, read_flt
+
+    path = tmp_path / "std.flt"
+    path.write_text("30 6378137 1 0\n60 6378137 3 0\n90 6378137 0 0\n", encoding="utf-8")
+    result = analyze_station(read_flt(path), hold_seconds=0)
+    # Hand-computed E=[1,3,0]: mean=4/3, variance=14/9 (population).
+    assert result["std_all_epochs_m"]["east_m"] == pytest.approx(14 ** 0.5 / 3)
+    assert result["rms_3d_all_epochs_m"] == pytest.approx((10 / 3) ** 0.5)
+    assert result["fix_rate"] is None
+
+
+def test_empirical_cdf_retains_unconverged_cases_and_duplicate_mass() -> None:
+    from great_agent.domain.position_analysis import empirical_cdf
+
+    assert empirical_cdf([1.0, 1.0, 3.0, None], include_missing=True) == [(1.0, 50.0), (3.0, 75.0)]
+    assert empirical_cdf([0.5]) == [(0.5, 100.0)]
+    assert empirical_cdf([None, None], include_missing=True) == []
+    assert empirical_cdf([0.5, None]) == [(0.5, 100.0)]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID, uuid4
@@ -55,6 +56,7 @@ class ClaimedTask:
     worker_id: str
     attempt_id: UUID
     attempt_number: int
+    owner_session_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -107,18 +109,61 @@ class TaskRepository:
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         self._session_factory = session_factory
 
-    def claim_next(self, worker_id: str) -> ClaimedTask | None:
+    def request_experiment_cancel(self, experiment_id: UUID) -> None:
+        with self._session_factory.begin() as session:
+            ids = session.scalars(update(DailyTaskModel).where(
+                DailyTaskModel.experiment_id == str(experiment_id), DailyTaskModel.status == "pending",
+            ).values(status="cancelled", updated_at=utc_now()).returning(DailyTaskModel.id)).all()
+            for task_id in ids:
+                self._publish_event(session, task_id, "task_status", {"status": "cancelled"})
+            running = session.scalars(select(DailyTaskModel).where(
+                DailyTaskModel.experiment_id == str(experiment_id), DailyTaskModel.status == "running",
+            )).all()
+            for task in running:
+                self._publish_event(session, task.id, "cancel_requested", {"attempt_id": task.active_attempt_id})
+
+    def cancellation_requested(self, task_id: UUID, attempt_id: UUID) -> bool:
+        with self._session_factory() as session:
+            payload = session.scalar(select(TaskEventModel.payload_json).where(
+                TaskEventModel.task_id == str(task_id), TaskEventModel.kind == "cancel_requested",
+            ).order_by(TaskEventModel.sequence.desc()).limit(1))
+            return payload is not None and json.loads(payload).get("attempt_id") == str(attempt_id)
+
+    def claim_next(
+        self, worker_id: str, *, max_concurrency: int | None = None,
+        owner_session_id: str | None = None,
+    ) -> ClaimedTask | None:
         now = utc_now()
         with self._session_factory.begin() as session:
+            # Acquire SQLite's writer lock before reading any quota. Independent
+            # repositories wait here, then observe the preceding claim's commit.
+            session.execute(text("BEGIN IMMEDIATE"))
+            if max_concurrency is not None:
+                running = session.scalar(
+                    select(func.count()).select_from(DailyTaskModel).where(
+                        DailyTaskModel.status == "running"
+                    )
+                )
+                if running >= max_concurrency:
+                    return None
             row = session.execute(
                 text(
                     """
                     UPDATE daily_tasks
                     SET status = 'running', worker_id = :worker_id, updated_at = :now
                     WHERE id = (
-                      SELECT id FROM daily_tasks
-                      WHERE status = 'pending'
-                      ORDER BY year, doy
+                      SELECT candidate.id FROM daily_tasks AS candidate
+                      JOIN plan_revisions AS revision
+                        ON revision.id = candidate.revision_id
+                       AND revision.experiment_id = candidate.experiment_id
+                      WHERE candidate.status = 'pending'
+                        AND revision.is_frozen = 1
+                        AND (
+                          SELECT COUNT(*) FROM daily_tasks AS occupied
+                          WHERE occupied.status = 'running'
+                            AND occupied.experiment_id = candidate.experiment_id
+                        ) < COALESCE(json_extract(revision.spec_json, '$.concurrency'), 1)
+                      ORDER BY candidate.year, candidate.doy
                       LIMIT 1
                     )
                     AND status = 'pending'
@@ -145,6 +190,9 @@ class TaskRepository:
                     number=attempt_number,
                     status="running",
                     started_at=now,
+                    owner_session_id=owner_session_id,
+                    launch_phase="reserved",
+                    analysis_status="not_started",
                 )
             )
             session.execute(
@@ -167,26 +215,74 @@ class TaskRepository:
                 worker_id=worker_id,
                 attempt_id=attempt_id,
                 attempt_number=attempt_number,
+                owner_session_id=owner_session_id,
             )
 
-    def record_pid(self, task_id: UUID, attempt_id: UUID, pid: int) -> None:
+    @staticmethod
+    def _require_owned_attempt(session, task_id, attempt_id, owner_session_id, expected_version=None):
+        session.execute(text("BEGIN IMMEDIATE"))
+        task = session.get(DailyTaskModel, str(task_id))
+        attempt = session.get(TaskAttemptModel, str(attempt_id))
+        if (task is None or attempt is None or task.status != "running"
+                or task.active_attempt_id != attempt.id or attempt.status != "running"
+                or attempt.owner_session_id != owner_session_id
+                or (expected_version is not None and attempt.version != expected_version)):
+            raise TaskStateError("attempt is not the active running attempt owned by this session")
+        return task, attempt
+
+    def prepare_spawn(self, task_id: UUID, attempt_id: UUID, command: tuple[str, ...], *,
+                      owner_session_id: str | None = None, expected_version: int | None = None) -> int:
+        from great_agent.runtime.process_identity import command_sha256
         with self._session_factory.begin() as session:
-            changed = session.execute(
-                update(TaskAttemptModel)
-                .where(
-                    TaskAttemptModel.id == str(attempt_id),
-                    TaskAttemptModel.task_id == str(task_id),
-                    TaskAttemptModel.status == "running",
-                )
-                .values(pid=pid)
-            )
-            if changed.rowcount != 1:
-                raise TaskStateError("PID can only be recorded for a running attempt")
+            _, attempt = self._require_owned_attempt(session, task_id, attempt_id, owner_session_id, expected_version)
+            if attempt.launch_phase != "reserved":
+                raise TaskStateError("only a reserved attempt can spawn")
+            attempt.launch_phase = "spawning"
+            attempt.process_executable = str(Path(command[0]).resolve())
+            attempt.command_sha256 = command_sha256(command)
+            attempt.version += 1
+            return attempt.version
+
+    def record_pid(self, task_id: UUID, attempt_id: UUID, pid: int, *,
+                   owner_session_id: str | None = None, identity=None, expected_version: int | None = None) -> int:
+        with self._session_factory.begin() as session:
+            _, attempt = self._require_owned_attempt(session, task_id, attempt_id, owner_session_id, expected_version)
+            attempt.pid = pid
+            attempt.launch_phase = "started"
+            if identity is not None:
+                if identity.pid != pid:
+                    raise TaskStateError("process identity PID mismatch")
+                attempt.process_created_at = identity.created_at
+                attempt.process_executable = identity.executable
+                attempt.command_sha256 = identity.command_sha256
+            attempt.version += 1
+            return attempt.version
 
     def mark_attempt_succeeded(
-        self, task_id: UUID, attempt_id: UUID, *, exit_code: int
+        self, task_id: UUID, attempt_id: UUID, *, exit_code: int,
+        owner_session_id: str | None = None, expected_version: int | None = None,
     ) -> None:
-        self._finish(task_id, attempt_id, "succeeded", exit_code, None)
+        self._finish(task_id, attempt_id, "succeeded", exit_code, None, owner_session_id, expected_version)
+
+    def complete_solver(self, claim: ClaimedTask, files, *, analysis_config: dict | None) -> None:
+        """Raw results, solver success and analysis enqueue must commit together."""
+        from great_agent.db.analysis_repository import AnalysisJobRepository
+        from great_agent.db.monitor_repository import register_result_files
+        with self._session_factory.begin() as session:
+            task, attempt = self._require_owned_attempt(session, claim.task_id, claim.attempt_id, claim.owner_session_id)
+            task.status = attempt.status = 'succeeded'
+            task.updated_at = attempt.finished_at = utc_now()
+            attempt.exit_code, attempt.error_code, attempt.launch_phase = 0, None, 'exited'
+            attempt.version += 1
+            register_result_files(self, claim.task_id, claim.attempt_id, files, session=session)
+            if analysis_config is not None:
+                AnalysisJobRepository.enqueue_in_session(session, task, attempt, analysis_config)
+            else:
+                self._publish_event(session, task.id, 'analysis_skipped', {
+                    'attempt_id': attempt.id,
+                    'reason': 'select a static DF-float reference experiment to analyze this scenario',
+                })
+            self._publish_event(session, task.id, 'task_status', {'status': 'succeeded', 'attempt_id': attempt.id})
 
     def mark_attempt_failed(
         self,
@@ -195,29 +291,26 @@ class TaskRepository:
         *,
         exit_code: int | None,
         error_code: str,
+        owner_session_id: str | None = None,
+        expected_version: int | None = None,
     ) -> None:
-        self._finish(task_id, attempt_id, "failed", exit_code, error_code)
+        self._finish(task_id, attempt_id, "failed", exit_code, error_code, owner_session_id, expected_version)
 
     def mark_attempt_cancelled(
-        self, task_id: UUID, attempt_id: UUID, *, exit_code: int | None
+        self, task_id: UUID, attempt_id: UUID, *, exit_code: int | None,
+        owner_session_id: str | None = None, expected_version: int | None = None,
     ) -> None:
-        self._finish(task_id, attempt_id, "cancelled", exit_code, None)
+        self._finish(task_id, attempt_id, "cancelled", exit_code, None, owner_session_id, expected_version)
 
     def set_attempt_log_path(
-        self, task_id: UUID, attempt_id: UUID, log_path: str
-    ) -> None:
+        self, task_id: UUID, attempt_id: UUID, log_path: str, *,
+        owner_session_id: str | None = None, expected_version: int | None = None,
+    ) -> int:
         with self._session_factory.begin() as session:
-            changed = session.execute(
-                update(TaskAttemptModel)
-                .where(
-                    TaskAttemptModel.id == str(attempt_id),
-                    TaskAttemptModel.task_id == str(task_id),
-                    TaskAttemptModel.status == "running",
-                )
-                .values(log_path=log_path)
-            )
-            if changed.rowcount != 1:
-                raise TaskStateError("log path requires an active running attempt")
+            _, attempt = self._require_owned_attempt(session, task_id, attempt_id, owner_session_id, expected_version)
+            attempt.log_path = log_path
+            attempt.version += 1
+            return attempt.version
 
     def add_result_files(
         self,
@@ -225,29 +318,8 @@ class TaskRepository:
         attempt_id: UUID,
         files: tuple[object, ...],
     ) -> None:
-        with self._session_factory.begin() as session:
-            for item in files:
-                existing = session.scalar(
-                    select(ResultFileModel).where(
-                        ResultFileModel.task_id == str(task_id),
-                        ResultFileModel.attempt_id == str(attempt_id),
-                        ResultFileModel.path == str(getattr(item, "path")),
-                    )
-                )
-                if existing is not None:
-                    existing.size_bytes = getattr(item, "size_bytes")
-                    continue
-                session.add(
-                    ResultFileModel(
-                        id=str(uuid4()),
-                        task_id=str(task_id),
-                        attempt_id=str(attempt_id),
-                        station=getattr(item, "station"),
-                        kind=getattr(item, "kind"),
-                        path=str(getattr(item, "path")),
-                        size_bytes=getattr(item, "size_bytes"),
-                    )
-                )
+        from great_agent.db.monitor_repository import register_result_files
+        register_result_files(self, task_id, attempt_id, files)
 
     def retry_task(self, task_id: UUID) -> None:
         with self._session_factory.begin() as session:
@@ -261,6 +333,7 @@ class TaskRepository:
             )
             if changed.rowcount != 1:
                 raise TaskStateError("only failed or interrupted tasks can be retried")
+            self._publish_event(session, str(task_id), "attempt_queued", {"status": "pending"})
 
     def running_task_ids(self, experiment_id: UUID) -> tuple[UUID, ...]:
         with self._session_factory() as session:
@@ -283,6 +356,10 @@ class TaskRepository:
                     if task.active_attempt_id
                     else None
                 )
+                # Compatibility for legacy callers only. A PID snapshot has
+                # no authority over attempts managed by session ownership.
+                if attempt is not None and attempt.owner_session_id is not None:
+                    continue
                 if attempt is not None and attempt.pid in active_pids:
                     self._publish_event(
                         session,
@@ -408,6 +485,7 @@ class TaskRepository:
         self, task_id: UUID, kind: str, payload: dict[str, Any]
     ) -> None:
         with self._session_factory.begin() as session:
+            session.execute(text("BEGIN IMMEDIATE"))
             self._publish_event(session, str(task_id), kind, payload)
 
     def list_tasks(self, experiment_id: UUID) -> tuple[TaskRecord, ...]:
@@ -426,24 +504,19 @@ class TaskRepository:
         status: str,
         exit_code: int | None,
         error_code: str | None,
+        owner_session_id: str | None = None,
+        expected_version: int | None = None,
     ) -> None:
         with self._session_factory.begin() as session:
-            task = session.get(DailyTaskModel, str(task_id))
-            attempt = session.get(TaskAttemptModel, str(attempt_id))
-            if (
-                task is None
-                or attempt is None
-                or task.status != "running"
-                or attempt.status != "running"
-                or task.active_attempt_id != attempt.id
-            ):
-                raise TaskStateError("attempt is not the active running attempt")
+            task, attempt = self._require_owned_attempt(session, task_id, attempt_id, owner_session_id, expected_version)
             task.status = status
             task.updated_at = utc_now()
             attempt.status = status
             attempt.exit_code = exit_code
             attempt.error_code = error_code
             attempt.finished_at = utc_now()
+            attempt.launch_phase = "exited"
+            attempt.version += 1
             self._publish_event(session, task.id, "task_status", {"status": status})
 
     @staticmethod
@@ -481,12 +554,10 @@ class TaskRepository:
             )
             or 0
         ) + 1
+        event_id = str(uuid4())
         session.add(
-            TaskEventModel(
-                id=str(uuid4()),
-                task_id=task_id,
-                sequence=sequence,
-                kind=kind,
-                payload_json=json.dumps(payload, sort_keys=True),
-            )
+            TaskEventModel(id=event_id, task_id=task_id, sequence=sequence,
+                kind=kind, payload_json=json.dumps(payload, sort_keys=True))
         )
+        from great_agent.db.monitor_repository import append_monitor_event
+        append_monitor_event(session, task_id, kind, payload, task_event_id=event_id)

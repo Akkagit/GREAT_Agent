@@ -1,0 +1,71 @@
+{
+  "status": "pass",
+  "model": "glm-4.7",
+  "max_turns": 2,
+  "max_physical_requests_per_turn": 4,
+  "scope": "Native AgentScope Agent+Toolkit, synthetic plans only; no database/XML/Worker/solver; original proxy environment retained",
+  "turns": [
+    {
+      "kind": "global_theory",
+      "text": "**GNSS PPP 与 RTK 的主要区别：**\n\nPPP（精密单点定位）利用精密轨道与钟差产品对单站进行独立解算，无需基准站，但收敛时间较长（通常数十分钟）才能达到厘米级精度。RTK（实时动态定位）则依靠基准站与流动站之间的差分观测值实时消除公共误差，可在数秒内固定整周模糊度并获取厘米甚至毫米级定位精度，但其作业范围受限于基站–流动站间距离（常规约 10–15 km，网络 RTK 可扩展至数十公里）。",
+      "metrics": {
+        "model_requests": 2,
+        "physical_model_requests": 2,
+        "tool_calls": 1,
+        "state_restored": false,
+        "elapsed_ms": 20250.0,
+        "policy_hash": "b2d2bf685459dd1c9a29bfee985de0e8222500628bce66da900698dc93244c0c",
+        "skill_hashes": {
+          "execution-review": "f61d30a89a2a71302c4a1de6829b97bde2e4c2cd0e99645c9f008eb0ffaaddd6",
+          "gnss-theory": "447885add6d69c64b3968cc9cf79843b4564041c10ffcc47b22f2de0c6ecfea8",
+          "paper-analysis": "193d27d2832508fd640f4eb965adeb94e0baaf5c29d60ca125f7025168621397",
+          "plan-edit": "3765e6c58b0a535687ea6de7fbcc8ce724c50b3ea5b838b2e79599571ad2436b",
+          "result-explanation": "7e105ee77d4aab15fd1f52c8fcd3197b930531ceab796a9e05382305775278ca"
+        },
+        "policy_version": "b2d2bf685459dd1c9a29bfee985de0e8222500628bce66da900698dc93244c0c",
+        "skill_versions": {
+          "execution-review": "f61d30a89a2a71302c4a1de6829b97bde2e4c2cd0e99645c9f008eb0ffaaddd6",
+          "gnss-theory": "447885add6d69c64b3968cc9cf79843b4564041c10ffcc47b22f2de0c6ecfea8",
+          "paper-analysis": "193d27d2832508fd640f4eb965adeb94e0baaf5c29d60ca125f7025168621397",
+          "plan-edit": "3765e6c58b0a535687ea6de7fbcc8ce724c50b3ea5b838b2e79599571ad2436b",
+          "result-explanation": "7e105ee77d4aab15fd1f52c8fcd3197b930531ceab796a9e05382305775278ca"
+        },
+        "resource_source": "configured"
+      },
+      "no_proposal": true,
+      "state_available": true
+    },
+    {
+      "kind": "mixed_explanation_and_proposal",
+      "text": "计划修改提案已提交，变更摘要如下：\n\n### 变更内容\n- **`scenario.frequency`**：`DF` → `TF`\n\n### 不变项\n- 模式：`static`、模糊度：`float`、重置时间：0\n- 日期段：2024 DOY 339\n- 台站组：`default_15`（15 个站）\n- 求解器、模板、输入配置等均不变\n\n该提案目前状态为 **pending**，等待您审阅确认后才会生效。",
+      "metrics": {
+        "model_requests": 3,
+        "physical_model_requests": 3,
+        "tool_calls": 3,
+        "state_restored": false,
+        "elapsed_ms": 35610.0,
+        "policy_hash": "b2d2bf685459dd1c9a29bfee985de0e8222500628bce66da900698dc93244c0c",
+        "skill_hashes": {
+          "execution-review": "f61d30a89a2a71302c4a1de6829b97bde2e4c2cd0e99645c9f008eb0ffaaddd6",
+          "gnss-theory": "447885add6d69c64b3968cc9cf79843b4564041c10ffcc47b22f2de0c6ecfea8",
+          "paper-analysis": "193d27d2832508fd640f4eb965adeb94e0baaf5c29d60ca125f7025168621397",
+          "plan-edit": "3765e6c58b0a535687ea6de7fbcc8ce724c50b3ea5b838b2e79599571ad2436b",
+          "result-explanation": "7e105ee77d4aab15fd1f52c8fcd3197b930531ceab796a9e05382305775278ca"
+        },
+        "policy_version": "b2d2bf685459dd1c9a29bfee985de0e8222500628bce66da900698dc93244c0c",
+        "skill_versions": {
+          "execution-review": "f61d30a89a2a71302c4a1de6829b97bde2e4c2cd0e99645c9f008eb0ffaaddd6",
+          "gnss-theory": "447885add6d69c64b3968cc9cf79843b4564041c10ffcc47b22f2de0c6ecfea8",
+          "paper-analysis": "193d27d2832508fd640f4eb965adeb94e0baaf5c29d60ca125f7025168621397",
+          "plan-edit": "3765e6c58b0a535687ea6de7fbcc8ce724c50b3ea5b838b2e79599571ad2436b",
+          "result-explanation": "7e105ee77d4aab15fd1f52c8fcd3197b930531ceab796a9e05382305775278ca"
+        },
+        "resource_source": "configured"
+      },
+      "has_proposal": true,
+      "callback_once": true,
+      "exact_frequency_only": true,
+      "state_available": true
+    }
+  ]
+}

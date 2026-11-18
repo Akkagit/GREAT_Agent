@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  WinSW 2.x template. Copy to deploy/local/GreatAgentTrialWorker.xml alongside
+  a trusted WinSW 2.x binary renamed GreatAgentTrialWorker.exe.
+  Before first start, choose a dedicated low-privilege service Log On account in
+  Services, grant it only the required paths, and provision deploy/local/logs/worker.
+  WinSW otherwise defaults to LocalSystem. Keep Manual until identity, ACLs,
+  environment and trial readiness are checked, then choose delayed Automatic.
+  Both API and Worker need GREAT_AGENT_MODEL_API_KEY in their actual service
+  environments; interactive shell variables are not proof of service identity.
+  No secret env XML entries: undefined percent-variable substitutions remain
+  literal in WinSW. Configure and verify the service-account environment.
+  Start exactly one Solver Worker; its analysis executor belongs to this process.
+  Official schema: https://github.com/winsw/winsw/blob/v2.12.0/doc/xmlConfigFile.md
+-->
+<service>
+  <id>GreatAgentTrialWorker</id>
+  <name>GREAT Agent Trial Worker</name>
+  <description>Single trial Solver Worker with its analysis executor.</description>
+  <executable>F:\GREAT_Agent\.venv\Scripts\python.exe</executable>
+  <arguments>-u -m great_agent.cli worker --config "F:\GREAT_Agent\config\local.trial.toml"</arguments>
+  <workingdirectory>F:\GREAT_Agent</workingdirectory>
+  <startmode>Manual</startmode>
+  <stoptimeout>60 sec</stoptimeout>
+  <onfailure action="restart" delay="10 sec" />
+  <resetfailure>1 hour</resetfailure>
+  <logpath>F:\GREAT_Agent\deploy\local\logs\worker</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

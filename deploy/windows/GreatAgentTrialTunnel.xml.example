@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  WinSW 2.x template. Copy to deploy/local/GreatAgentTrialTunnel.xml alongside
+  a trusted WinSW 2.x binary renamed GreatAgentTrialTunnel.exe.
+  Provision deploy/local/bin/frpc.exe, frpc.toml, frpc.token, tls/relay-ca.crt
+  and logs/tunnel before starting. The token must be one random 64-hex value
+  identical to the relay token. Check its full format before every start:
+  frp itself does not reject empty token-file contents.
+  Set a dedicated low-privilege service Log On account in Services before first
+  start; WinSW otherwise defaults to LocalSystem. The account only needs read
+  access to the protected tunnel config/token/CA and write access to its logs.
+  No secret env XML entries or interactive-user environment is needed for frpc:
+  tokenSource reads the ACL-protected file as the actual service account.
+  Keep Manual until identity, ACLs and tunnel validation pass, then choose delayed
+  Automatic. Automatic restart does not establish API/Worker readiness.
+  Official schema: https://github.com/winsw/winsw/blob/v2.12.0/doc/xmlConfigFile.md
+-->
+<service>
+  <id>GreatAgentTrialTunnel</id>
+  <name>GREAT Agent Trial Tunnel</name>
+  <description>Certificate-verified frpc tunnel for the loopback trial API.</description>
+  <executable>F:\GREAT_Agent\deploy\local\bin\frpc.exe</executable>
+  <arguments>-c "F:\GREAT_Agent\deploy\local\frpc.toml"</arguments>
+  <workingdirectory>F:\GREAT_Agent</workingdirectory>
+  <startmode>Manual</startmode>
+  <stoptimeout>30 sec</stoptimeout>
+  <onfailure action="restart" delay="10 sec" />
+  <resetfailure>1 hour</resetfailure>
+  <logpath>F:\GREAT_Agent\deploy\local\logs\tunnel</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

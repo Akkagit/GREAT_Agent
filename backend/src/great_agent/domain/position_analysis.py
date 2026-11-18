@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from pathlib import Path
 class PositionEpoch:
     sow: float
     xyz: tuple[float, float, float]
+    ambiguity_status: str | None = None
 
 
 def read_flt(path: Path) -> tuple[PositionEpoch, ...]:
@@ -19,12 +21,17 @@ def read_flt(path: Path) -> tuple[PositionEpoch, ...]:
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         try:
-            values = tuple(float(value) for value in line.split()[:4])
+            fields = line.split()
+            values = tuple(float(value) for value in fields[:4])
             if len(values) != 4 or not all(math.isfinite(value) for value in values):
                 raise ValueError("expected finite seconds-of-week and XYZ")
             if epochs and values[0] <= epochs[-1].sow:
                 raise ValueError("epochs must be strictly increasing")
-            epochs.append(PositionEpoch(values[0], values[1:4]))
+            # GREAT v2 AmbStatus is column 17; the following Quality field
+            # is a different classification and must not drive the fixing rate.
+            status = fields[16] if len(fields) >= 17 else None
+            status = status if status in ("Fixed", "Float") else None
+            epochs.append(PositionEpoch(values[0], values[1:4], status))
         except ValueError as error:
             raise ValueError(f"{path.name}:{number}: {error}") from error
     if not epochs:
@@ -107,6 +114,8 @@ def analyze_station(
             "elapsed_minutes": (epoch.sow - day_start) / 60,
             "east_m": east, "north_m": north, "up_m": up,
             "horizontal_m": horizontal,
+            "three_d_m": math.hypot(horizontal, up),
+            "ambiguity_status": epoch.ambiguity_status,
             "horizontal_within": horizontal <= horizontal_threshold_m,
             "vertical_within": abs(up) <= vertical_threshold_m,
         })
@@ -129,6 +138,14 @@ def analyze_station(
         }
 
     joint_start = starts["joint"]
+    after = [row for row in rows if joint_start is not None and row["sow"] >= joint_start]
+    rms_all = rms(rows)
+    counts = Counter(epoch.ambiguity_status for epoch in epochs)
+    classified = counts["Fixed"] + counts["Float"]
+    std = {}
+    for key in ("east_m", "north_m", "up_m"):
+        average = sum(row[key] for row in rows) / len(rows)
+        std[key] = math.sqrt(sum((row[key] - average) ** 2 for row in rows) / len(rows))
     return {
         "reference_xyz_m": list(reference.xyz),
         "reference_sow": reference.sow,
@@ -141,9 +158,30 @@ def analyze_station(
             for key, start in starts.items()
         },
         "joint_within_fraction": sum(joint_good) / len(rows),
-        "rms_all_epochs_m": rms(rows),
-        "rms_after_joint_convergence_m": rms([
-            row for row in rows if joint_start is not None and row["sow"] >= joint_start
-        ]),
+        "rms_all_epochs_m": rms_all,
+        "rms_3d_all_epochs_m": math.sqrt(sum(rms_all[key] ** 2 for key in ("east_m", "north_m", "up_m"))),
+        "rms_after_joint_convergence_m": rms(after),
+        "std_all_epochs_m": std,
+        "fix_rate": counts["Fixed"] / classified if classified else None,
+        "ambiguity_counts": {"fixed": counts["Fixed"], "float": counts["Float"], "unknown": counts[None]},
         "epochs": rows,
     }
+
+
+def empirical_cdf(
+    values: list[float | None], *, include_missing: bool = False
+) -> list[tuple[float, float]]:
+    """Exact right-continuous CDF; missing convergence values may stay censored."""
+    observed = [float(value) for value in values if value is not None]
+    if not all(math.isfinite(value) for value in observed):
+        raise ValueError("CDF samples must be finite")
+    denominator = len(values) if include_missing else len(observed)
+    if not observed:
+        return []
+    counts = Counter(observed)
+    accumulated = 0
+    result = []
+    for value in sorted(counts):
+        accumulated += counts[value]
+        result.append((value, accumulated / denominator * 100))
+    return result

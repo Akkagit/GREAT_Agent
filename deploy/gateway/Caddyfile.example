@@ -1,0 +1,32 @@
+# Caddy >= 2.8. Copy to the gateway's protected /etc/caddy/Caddyfile.
+# Supply /etc/caddy/trial.env through the Caddy systemd service EnvironmentFile.
+# Use one unique username/password per person; generate each hash interactively
+# with `caddy hash-password`. Add/remove rows here to invite/revoke people.
+# Official syntax: https://caddyserver.com/docs/caddyfile/directives/basic_auth
+{$TRIAL_HOST} {
+    # GET/HEAD/OPTIONS are read-only. Every other method requires the exact
+    # HTTPS Origin, including requests to uploads, models, tasks and cancel APIs.
+    # An absent, null, HTTP or foreign Origin fails this matcher check.
+    @unsafe_origin {
+        not method GET HEAD OPTIONS
+        not header Origin https://{$TRIAL_HOST}
+    }
+
+    # Preserve ordering: authentication covers every path, including diagnostics,
+    # static assets, PDFs, health probes and event streams, before proxying.
+    route {
+        basic_auth {
+            trial_admin {$TRIAL_ADMIN_HASH}
+            invitee_01 {$TRIAL_INVITEE_01_HASH}
+        }
+        respond @unsafe_origin "A same-origin HTTPS request is required." 403
+
+        # Caddy automatically flushes text/event-stream; keep default disconnect
+        # cancellation and do not add response buffering or a stream timeout.
+        # https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#streaming
+        reverse_proxy 127.0.0.1:18765 {
+            # The backend does not need the user's reusable Basic Auth secret.
+            header_up -Authorization
+        }
+    }
+}

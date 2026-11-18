@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  WinSW 2.x template. Copy to deploy/local/GreatAgentTrialApi.xml alongside
+  a trusted WinSW 2.x binary renamed GreatAgentTrialApi.exe.
+  Before first start, choose a dedicated low-privilege service Log On account in
+  Services, grant it only the required paths, and provision deploy/local/logs/api.
+  WinSW otherwise defaults to LocalSystem. Keep Manual until identity, ACLs,
+  environment and trial readiness are checked, then choose delayed Automatic.
+  GREAT_AGENT_MODEL_API_KEY must reach the actual service process independently
+  of your interactive shell. There is deliberately no secret env XML entry:
+  WinSW leaves undefined percent-variable substitutions unchanged. Use the
+  verified service-account environment; never paste API keys in this example.
+  Run exactly one API. Trial port/resources come from config/local.trial.toml.
+  Official schema: https://github.com/winsw/winsw/blob/v2.12.0/doc/xmlConfigFile.md
+-->
+<service>
+  <id>GreatAgentTrialApi</id>
+  <name>GREAT Agent Trial API</name>
+  <description>Single loopback trial API with its knowledge executor.</description>
+  <executable>F:\GREAT_Agent\.venv\Scripts\python.exe</executable>
+  <arguments>-u -m great_agent.cli api --config "F:\GREAT_Agent\config\local.trial.toml"</arguments>
+  <workingdirectory>F:\GREAT_Agent</workingdirectory>
+  <startmode>Manual</startmode>
+  <stoptimeout>60 sec</stoptimeout>
+  <onfailure action="restart" delay="10 sec" />
+  <resetfailure>1 hour</resetfailure>
+  <logpath>F:\GREAT_Agent\deploy\local\logs\api</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

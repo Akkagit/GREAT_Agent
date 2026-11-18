@@ -1,0 +1,79 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "antd-controls-in-product",
+      "pass": true
+    },
+    {
+      "name": "no-automatic-execution",
+      "pass": true
+    },
+    {
+      "name": "candidate-preserves-original-revision",
+      "pass": true
+    },
+    {
+      "name": "pending-blocks-preflight",
+      "pass": true
+    },
+    {
+      "name": "explicit-accept-only",
+      "pass": true
+    },
+    {
+      "name": "mobile-draft-survives-pane-switch",
+      "pass": true
+    },
+    {
+      "name": "mobile-has-no-horizontal-page-overflow",
+      "pass": true
+    },
+    {
+      "name": "confirmation-initially-disabled",
+      "pass": true
+    },
+    {
+      "name": "full-xml-pure-text",
+      "pass": true
+    },
+    {
+      "name": "preview-does-not-run",
+      "pass": true
+    },
+    {
+      "name": "xml-switch-clears-acknowledgement",
+      "pass": true
+    },
+    {
+      "name": "one-explicit-confirmed-submit",
+      "pass": true
+    },
+    {
+      "name": "stop-dialog-has-correct-accessible-title",
+      "pass": true
+    },
+    {
+      "name": "stop-still-requires-explicit-confirmation",
+      "pass": true
+    },
+    {
+      "name": "one-explicit-stop-submit",
+      "pass": true
+    },
+    {
+      "name": "no-uncaught-browser-exceptions",
+      "pass": true
+    }
+  ],
+  "exceptions": [],
+  "requests": [
+    "/api/v1/experiments/fixture-exp/proposals",
+    "/api/v1/experiments/fixture-exp/revisions",
+    "/api/v1/experiments/fixture-exp/validate",
+    "/api/v1/experiments/fixture-exp/execution-preview",
+    "/api/v1/experiments/fixture-exp/run",
+    "/api/v1/experiments/fixture-exp/stop"
+  ],
+  "scope": "Built frontend with synthetic loopback API only; no production DB, model request or solver process"
+}

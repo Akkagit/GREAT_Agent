@@ -1,0 +1,9 @@
+{
+  "name": "great-agent-p0-antd-only-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"typecheck": "tsc --noEmit", "typecheck:strict-declarations": "tsc --noEmit --skipLibCheck false", "build": "vite build"},
+  "dependencies": {"react": "19.2.8", "react-dom": "19.2.8", "antd": "6.6.8"},
+  "devDependencies": {"@types/react": "19.2.18", "@types/react-dom": "19.2.7", "typescript": "6.0.2", "vite": "8.3.0"}
+}

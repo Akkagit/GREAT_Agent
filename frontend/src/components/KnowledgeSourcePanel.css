@@ -1,0 +1,28 @@
+.kw-source-tools { min-width: 0; margin: 16px 0; }
+.kw-source-tools .kw-source-tools-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.kw-source-tools .kw-source-tools-actions label { display: flex; flex-direction: column; gap: 4px; color: #425466; font-size: 12px; }
+.kw-source-tools .kw-source-tools-actions .ant-select { min-width: 100px; }
+.kw-source-tools .kw-source-tools-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 10px; }
+.kw-source-tools .kw-source-tools-tabs button { border: 0; border-radius: 5px; background: transparent; color: #526479; cursor: pointer; padding: 6px 10px; }
+.kw-source-tools .kw-source-tools-tabs button[aria-selected="true"] { background: #eaf3ff; color: #163d70; font-weight: 600; }
+.kw-source-tools .kw-source-tools-tabs button:disabled { color: #a4acb7; cursor: not-allowed; }
+.kw-source-tools .kw-source-tools-tabs button:focus-visible { outline: 2px solid #3578d4; outline-offset: 2px; }
+.kw-source-tools blockquote.kw-excerpt,
+.kw-source-tools .kw-source-tools-translation .markdown-content { min-width: 0; max-width: 100%; box-sizing: border-box; white-space: normal; overflow-wrap: normal; word-break: normal; hyphens: none; overflow-x: auto; }
+.kw-source-tools blockquote.kw-excerpt { margin: 0; }
+/* Override the workspace's generic paragraph wrapping only in reading prose.
+   Code, tables and KaTeX retain their own whitespace/scrolling rules. */
+.kw-source-tools blockquote.kw-excerpt p,
+.kw-source-tools .kw-source-tools-translation .markdown-content :is(p, li, blockquote, h1, h2, h3, h4, h5, h6) { white-space: normal; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.kw-source-tools blockquote.kw-excerpt p { margin: .75em 0; }
+.kw-source-tools blockquote.kw-excerpt p:first-child { margin-top: 0; }
+.kw-source-tools blockquote.kw-excerpt p:last-child { margin-bottom: 0; }
+.kw-source-tools .kw-source-tools-translation { min-width: 0; margin-top: 10px; padding: 12px; border: 1px solid #dce6f0; border-radius: 6px; }
+.kw-source-tools .kw-source-tools-translation > p { color: #687a8d; font-size: 12px; margin: 0 0 8px; }
+.kw-source-tools .kw-source-tools-status { color: #315c42; font-size: 12px; margin: 8px 0; }
+.kw-source-tools .ant-alert { margin-top: 10px; }
+.kw-source-tools .kw-source-tools-manual { display: block; width: 100%; box-sizing: border-box; min-height: 112px; margin-top: 8px; padding: 8px; white-space: pre-wrap; border: 1px solid #b9c9da; border-radius: 4px; resize: vertical; }
+@media (max-width: 760px) {
+  .kw-source-tools .kw-source-tools-actions { gap: 6px; }
+  .kw-source-tools .kw-source-tools-actions label { flex: 1 1 100%; }
+}

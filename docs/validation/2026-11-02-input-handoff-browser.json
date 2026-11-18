@@ -1,0 +1,196 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "pending-does-not-check-input",
+      "pass": true
+    },
+    {
+      "name": "accept-auto-check-exactly-once",
+      "pass": true
+    },
+    {
+      "name": "check-bound-to-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "accepted-plan-preserved",
+      "pass": true
+    },
+    {
+      "name": "accept-and-check-do-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "inline-pass-exposes-manual-xml",
+      "pass": true
+    },
+    {
+      "name": "mobile-draft-preserved",
+      "pass": true
+    },
+    {
+      "name": "mobile-no-horizontal-overflow",
+      "pass": true
+    },
+    {
+      "name": "xml-only-on-explicit-inline-click",
+      "pass": true
+    },
+    {
+      "name": "review-checkbox-initially-clear",
+      "pass": true
+    },
+    {
+      "name": "review-xml-present",
+      "pass": true
+    },
+    {
+      "name": "xml-preview-has-not-run",
+      "pass": true
+    },
+    {
+      "name": "review-mobile-no-overflow",
+      "pass": true
+    },
+    {
+      "name": "mobile-inline-action-remains-accessible",
+      "pass": true
+    },
+    {
+      "name": "mobile-auto-selects-workspace-after-inline-XML",
+      "pass": true
+    },
+    {
+      "name": "xml-review-visible-in-workspace-pane",
+      "pass": true
+    },
+    {
+      "name": "mobile-draft-survives-XML-handoff",
+      "pass": true
+    },
+    {
+      "name": "view-existing-XML-auto-selects-workspace",
+      "pass": true
+    },
+    {
+      "name": "view-existing-XML-does-not-prepare-again",
+      "pass": true
+    },
+    {
+      "name": "pending-does-not-check-input",
+      "pass": true
+    },
+    {
+      "name": "accept-auto-check-exactly-once",
+      "pass": true
+    },
+    {
+      "name": "check-bound-to-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "accepted-plan-preserved",
+      "pass": true
+    },
+    {
+      "name": "accept-and-check-do-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "missing-details-inline",
+      "pass": true
+    },
+    {
+      "name": "missing-has-no-enabled-xml",
+      "pass": true
+    },
+    {
+      "name": "inline-retry-preserves-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "retry-bound-to-revision",
+      "pass": true
+    },
+    {
+      "name": "retry-does-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "pending-does-not-check-input",
+      "pass": true
+    },
+    {
+      "name": "accept-auto-check-exactly-once",
+      "pass": true
+    },
+    {
+      "name": "check-bound-to-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "accepted-plan-preserved",
+      "pass": true
+    },
+    {
+      "name": "accept-and-check-do-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "failure-shown-inline",
+      "pass": true
+    },
+    {
+      "name": "failure-no-false-accept-error",
+      "pass": true
+    },
+    {
+      "name": "inline-retry-preserves-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "retry-bound-to-revision",
+      "pass": true
+    },
+    {
+      "name": "retry-does-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "pending-does-not-check-input",
+      "pass": true
+    },
+    {
+      "name": "mobile-check-keeps-chat-selected",
+      "pass": true
+    },
+    {
+      "name": "accept-auto-check-exactly-once",
+      "pass": true
+    },
+    {
+      "name": "check-bound-to-accepted-revision",
+      "pass": true
+    },
+    {
+      "name": "accepted-plan-preserved",
+      "pass": true
+    },
+    {
+      "name": "accept-and-check-do-not-freeze-or-run",
+      "pass": true
+    },
+    {
+      "name": "mobile-check-result-keeps-chat-selected",
+      "pass": true
+    },
+    {
+      "name": "no-uncaught-browser-exceptions",
+      "pass": true
+    }
+  ],
+  "exceptions": [],
+  "scope": "Built frontend + isolated synthetic in-memory HTTP API; no real DB/model/solver.",
+  "build": "index-3osZFYIN.js"
+}

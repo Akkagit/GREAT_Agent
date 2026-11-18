@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from great_agent.adapters.great_pppflt import GreatPppfltAdapter
 from great_agent.adapters.pppflt_preflight import PreflightItem
 from great_agent.db.models import DailyTaskModel
+from great_agent.db.repositories import TaskRepository
 from great_agent.domain.dates import YearDoy, expand_dates
 from great_agent.errors import PlanNotFrozenError, PreflightError
 from great_agent.runtime.run_storage import RunStorage
@@ -42,6 +43,11 @@ class TaskService:
         self.plan_service = plan_service
         self.adapter = adapter
         self.run_storage = run_storage
+
+    @property
+    def execution_service(self):
+        from great_agent.services.execution_service import ExecutionService
+        return ExecutionService(self)
 
     def materialize(self, experiment_id: UUID) -> tuple[DailyTaskRecord, ...]:
         revision = self.plan_service.get_current_revision(experiment_id)
@@ -87,6 +93,10 @@ class TaskService:
                     session.add(model)
                     models.append(model)
                 session.flush()
+                for model in models:
+                    TaskRepository._publish_event(session, model.id, "task_created", {
+                        "status": "pending", "next_attempt_number": 1,
+                    })
                 records = tuple(
                     self._record(model, len(revision.spec.stations))
                     for model in models

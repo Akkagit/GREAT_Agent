@@ -8,6 +8,7 @@ from pydantic import (
     Field,
     StringConstraints,
     field_validator,
+    field_serializer,
     model_validator,
 )
 
@@ -37,13 +38,23 @@ class ExperimentSpec(BaseModel):
     scenario: Scenario
     date_segments: tuple[DateSegment, ...]
     excluded_dates: tuple[YearDoy, ...] = ()
-    station_group_id: ProfileId
-    stations: tuple[str, ...]
+    station_group_id: ProfileId = Field(description=(
+        "default_15 requires exactly 15 unique stations. Use custom when explicitly "
+        "editing the preset station selection; preserve unrelated fields."
+    ))
+    stations: tuple[str, ...] = Field(description=(
+        "Ordered station snapshot. Preserve order when editing; first station means "
+        "index 0. Codes normalize to uppercase and must be nonempty and unique."
+    ))
     input_profile_id: ProfileId = "local_default"
     solver_profile_id: ProfileId = "great_local"
     template_profile_id: ProfileId = "pppflt_base"
     concurrency: int = Field(default=1, ge=1, le=8)
     outputs: frozenset[Literal["flt", "log"]] = frozenset({"flt", "log"})
+
+    @field_serializer("outputs", when_used="json")
+    def serialize_outputs(self, outputs: frozenset[str]) -> list[str]:
+        return sorted(outputs)
 
     @field_validator("stations", mode="before")
     @classmethod

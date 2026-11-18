@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import subprocess
+from contextlib import suppress
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +14,15 @@ class ProcessOutcome:
     pid: int
     exit_code: int
     cancelled: bool
+
+
+class ProcessCleanupError(RuntimeError):
+    """The owned child may still run; retain its handle and keep its quota."""
+    def __init__(self, key: UUID, process: asyncio.subprocess.Process):
+        super().__init__(f'Cannot confirm cleanup of owned process {process.pid}')
+        self.key = key
+        self.pid = process.pid
+        self.process = process
 
 
 class ProcessRunner:
@@ -41,16 +51,53 @@ class ProcessRunner:
                 creationflags=creationflags,
             )
             self._active[key] = process
-            on_started(process.pid)
             try:
+                on_started(process.pid)
                 exit_code = await process.wait()
+            except BaseException:
+                # The process is already ours even when persistence or the
+                # callback fails. Never leave it alive without an observer.
+                try:
+                    await self._cleanup_process(process)
+                except OSError as cleanup_error:
+                    if process.returncode is None:
+                        raise ProcessCleanupError(key, process) from cleanup_error
+                self._cancelled.discard(key)
+                raise
             finally:
-                self._active.pop(key, None)
+                if process.returncode is not None:
+                    self._active.pop(key, None)
         cancelled = key in self._cancelled
         self._cancelled.discard(key)
         return ProcessOutcome(
             pid=process.pid, exit_code=exit_code, cancelled=cancelled
         )
+
+    async def _cleanup_process(self, process):
+        if process.returncode is None:
+            with suppress(ProcessLookupError):
+                process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), timeout=self.cancel_grace_seconds)
+            except TimeoutError:
+                with suppress(ProcessLookupError):
+                    process.kill()
+                await process.wait()
+
+    async def retry_cleanup(self, key: UUID) -> bool:
+        process = self._active.get(key)
+        if process is None:
+            return True
+        try:
+            await self._cleanup_process(process)
+        except OSError:
+            if process.returncode is None:
+                return False
+        if process.returncode is None:
+            return False
+        self._active.pop(key, None)
+        self._cancelled.discard(key)
+        return True
 
     async def cancel(self, key: UUID) -> bool:
         process = self._active.get(key)

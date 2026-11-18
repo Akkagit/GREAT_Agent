@@ -9,5 +9,6 @@ $quotedRoot = $projectRoot.Replace("'", "''")
 $quotedConfig = $configPath.Replace("'", "''")
 Start-Process pwsh -ArgumentList @('-NoExit', '-Command', "Set-Location -LiteralPath '$quotedRoot'; uv run great-agent api --config '$quotedConfig'")
 Start-Process pwsh -ArgumentList @('-NoExit', '-Command', "Set-Location -LiteralPath '$quotedRoot'; uv run great-agent worker --config '$quotedConfig'")
+Start-Process pwsh -WindowStyle Hidden -ArgumentList @('-NoExit', '-Command', "Set-Location -LiteralPath '$quotedRoot'; uv run great-agent research-worker --config '$quotedConfig'")
 Start-Process pwsh -ArgumentList @('-NoExit', '-Command', "Set-Location -LiteralPath '$quotedRoot'; npm --prefix frontend run dev")
 Write-Host 'Development API, worker, and Vite logs opened in separate terminals.'

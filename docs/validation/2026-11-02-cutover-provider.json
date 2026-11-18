@@ -1,0 +1,61 @@
+{
+  "observed_date": "2026-11-02",
+  "credential_source": "Windows User variable injected only into smoke child process",
+  "final": {
+    "status": "pass",
+    "provider": "AgentScopeModelProvider",
+    "agentscope_version": "2.0.11",
+    "requested_model": "glm-4.7",
+    "provider_calls": 1,
+    "max_physical_requests": 1,
+    "max_output_tokens": 512,
+    "deadline_seconds": 45,
+    "scope": "Synthetic plan only; actual product provider; no database, model tools or solver",
+    "proposal_schema_valid": true,
+    "candidate_unchanged": true,
+    "elapsed_seconds": 11.39
+  },
+  "setup_attempts": [
+    {
+      "status": "fail",
+      "provider": "AgentScopeModelProvider",
+      "agentscope_version": "2.0.11",
+      "requested_model": "glm-4.7",
+      "provider_calls": 1,
+      "max_physical_requests": 1,
+      "max_output_tokens": 512,
+      "deadline_seconds": 45,
+      "scope": "Synthetic plan only; actual product provider; no database, model tools or solver",
+      "error_type": "ModelProviderError",
+      "elapsed_seconds": 2.722
+    },
+    {
+      "status": "fail",
+      "provider": "AgentScopeModelProvider",
+      "agentscope_version": "2.0.11",
+      "requested_model": "glm-4.7",
+      "provider_calls": 1,
+      "max_physical_requests": 1,
+      "max_output_tokens": 512,
+      "deadline_seconds": 45,
+      "scope": "Synthetic plan only; actual product provider; no database, model tools or solver",
+      "loopback_proxy_reachable": true,
+      "error_type": "ModelProviderError",
+      "safe_reason": "invalid_provider_response",
+      "elapsed_seconds": 5.547
+    }
+  ],
+  "diagnosis": {
+    "proxy_schemes": {
+      "HTTP_PROXY": "http",
+      "HTTPS_PROXY": "http",
+      "ALL_PROXY": "socks5"
+    },
+    "loopback_proxy_reachable": true,
+    "offline_default_client_error_type": "ImportError",
+    "missing_optional_dependency": "socksio",
+    "fix": "httpx[socks]; lock adds socksio 1.0.0 only",
+    "proxy_configuration_changed": false
+  },
+  "safety_scope": "Synthetic plan only; no provider response text, key, prompt, production DB, research inputs, model tools or solver persisted/executed"
+}

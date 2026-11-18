@@ -1,11 +1,26 @@
 from __future__ import annotations
 
 from pathlib import Path
+import logging
 
 import pytest
 
 from great_agent.app import create_app
 from great_agent.config import AppSettings
+
+
+@pytest.fixture(autouse=True)
+def restore_logger_enablement_after_test():
+    """Alembic fileConfig must not disable another test's application logger.
+
+    Restore the existing policy rather than enabling all loggers: SDK loggers
+    deliberately disabled by the model boundary must remain disabled.
+    """
+    before = {logger: logger.disabled for logger in logging.Logger.manager.loggerDict.values()
+              if isinstance(logger, logging.Logger)}
+    yield
+    for logger, disabled in before.items():
+        logger.disabled = disabled
 
 
 def write_config(

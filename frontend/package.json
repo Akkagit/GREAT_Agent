@@ -8,12 +8,20 @@
     "build": "tsc -b && vite build",
     "test": "vitest",
     "typecheck": "tsc -b --pretty false",
-    "lint": "oxlint",
+    "lint": "oxlint src vite.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
+    "antd": "6.6.8",
+    "katex": "0.19.1",
+    "pdfjs-dist": "6.5.438",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-markdown": "10.1.0",
+    "rehype-katex": "7.0.1",
+    "remark-cjk-friendly": "2.3.4",
+    "remark-gfm": "4.0.1",
+    "remark-math": "6.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",

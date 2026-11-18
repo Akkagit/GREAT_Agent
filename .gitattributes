@@ -1,0 +1,3 @@
+# Preserve byte offsets and checksums in fixtures and validation images.
+*.pdf binary
+*.png binary
